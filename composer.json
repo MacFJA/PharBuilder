@@ -1,0 +1,30 @@
+{
+    "name": "macfja/phar-builder",
+    "description": "CLI tool for create phar",
+    "minimum-stability": "dev",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "MacFJA"
+        }
+    ],
+    "require": {
+        "symfony/console": "2.6.x-dev",
+        "macfja/symfony-console-filechooser": "dev-master",
+        "rych/bytesize": "1.0.0",
+        "webignition/readable-duration": "dev-master"
+    },
+    "autoload": {
+        "psr-4": {"MacFJA\\PharBuilder\\": "app/"}
+    },
+    "bin": ["bin/phar-builder", "bin/phar-builder.php"],
+    "extra": {
+        "phar-builder": {
+            "entry-point": "bin/phar-builder.php",
+            "compression": "None",
+            "name": "phar-builder.phar",
+            "output-dir": "./",
+            "include": ["bin"]
+        }
+    }
+}
