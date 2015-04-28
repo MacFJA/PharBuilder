@@ -7,7 +7,7 @@ Create a Phar (PHp ARchive) file of your Composer based PHP application
 ### Composer
 
 ```sh
-composer require macfja/symfony-console-filechooser @dev
+composer require macfja/phar-builder @dev
 ```
 
 ### Phar archive

@@ -1,6 +1,6 @@
 {
     "name": "macfja/phar-builder",
-    "description": "CLI tool for create phar",
+    "description": "CLI tool for create phar of your composer based project",
     "minimum-stability": "dev",
     "license": "MIT",
     "authors": [
