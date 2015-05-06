@@ -13,7 +13,7 @@ use webignition\ReadableDuration\ReadableDuration;
  * Class PharBuilder
  * This class create the Phar file of a specific composer based project
  *
- * @author MacFJA
+ * @author  MacFJA
  * @package MacFJA\PharBuilder
  */
 class PharBuilder
@@ -32,7 +32,7 @@ class PharBuilder
     protected $composer;
     /** @var int */
     protected $compression;
-    /** @var string[]  */
+    /** @var string[] */
     protected $includes = array();
 
     /** @var array List of equivalence for compression */
@@ -45,12 +45,12 @@ class PharBuilder
 
     /**
      * @param OutputInterface $output
-     * @param string $composer The path of the composer.json file
-     * @param string $outputDir The path to the directory where the phar will be created
-     * @param string $pharName The name of the phar
-     * @param string $stubFile The path of entry point of the application
-     * @param int $compression The compression type of the Phar (see Phar constant)
-     * @param string[] $includes List of directories to include
+     * @param string          $composer    The path of the composer.json file
+     * @param string          $outputDir   The path to the directory where the phar will be created
+     * @param string          $pharName    The name of the phar
+     * @param string          $stubFile    The path of entry point of the application
+     * @param int             $compression The compression type of the Phar (see Phar constant)
+     * @param string[]        $includes    List of directories to include
      */
     function __construct(OutputInterface $output, $composer, $outputDir, $pharName, $stubFile, $compression, $includes)
     {
@@ -61,7 +61,7 @@ class PharBuilder
         $this->alias = $pharName;
         $this->composer = $composer;
         $this->output = $output;
-        $this->compression = array_key_exists($compression, $this->compressionList)?$this->compressionList[$compression]:\Phar::NONE;
+        $this->compression = array_key_exists($compression, $this->compressionList) ? $this->compressionList[$compression] : \Phar::NONE;
         $this->includes = $includes;
         $this->buildPhar();
     }
@@ -102,47 +102,42 @@ class PharBuilder
         $this->addFile('composer.lock');
         $this->addFile($this->stubFile);
         $this->output->writeln("\r\033[2K" . '   <info>All files added</info>');
-        gc_collect_cycles();
-
-        /**if(in_array($this->compression, array(\Phar::BZ2, \Phar::GZ))) {
-            $this->output->write('Compress all files...', false);
-            $this->phar->compressFiles($this->compression);
-            $this->output->writeln(' <info>OK</info>'.PHP_EOL);
-        }*/
-        //$this->compressFiles();
 
         $this->phar->stopBuffering();
 
         $endTime = time();
-        $this->output->writeln('File size: <comment>' . ByteSize::formatBinary(filesize($this->pharName)).'</comment>');
-        $this->output->writeln('Process duration: <comment>'.$this->buildDuration($startTime, $endTime).'</comment>'.PHP_EOL);
-
+        $this->output->writeln('File size: <comment>' . ByteSize::formatBinary(filesize($this->pharName)) . '</comment>');
+        $this->output->writeln('Process duration: <comment>' . $this->buildDuration($startTime, $endTime) . '</comment>' . PHP_EOL);
 
         $successMessage = 'Phar creation successful';
         $this->output->writeln('<success>  ' . str_repeat(' ', strlen($successMessage)) . '  </success>');
-        $this->output->writeln('<success>  [Success]' . str_repeat(' ', strlen($successMessage) - 9) . '  </success>');// -9 for the "[Success]" text
+        $this->output->writeln('<success>  [Success]' . str_repeat(' ', strlen($successMessage) - 9) . '  </success>'); // -9 for the "[Success]" text
         $this->output->writeln('<success>  ' . $successMessage . '  </success>');
         $this->output->writeln('<success>  ' . str_repeat(' ', strlen($successMessage)) . '  </success>');
     }
 
     /**
      * Calculate and build a readable duration
+     *
      * @param int $start start timestamp
-     * @param int $end end timestamp
+     * @param int $end   end timestamp
+     *
      * @return string
      */
-    protected function buildDuration($start, $end) {
-        $duration = new ReadableDuration($end-$start);
+    protected function buildDuration($start, $end)
+    {
+        $duration = new ReadableDuration($end - $start);
         $data = $duration->getInMostAppropriateUnits(2);
         $result = array();
-        foreach($data as $unit) {
-            $result[] = $unit['value'].' '.$unit['unit'].($unit['value']>1?'s':'');
+        foreach ($data as $unit) {
+            $result[] = $unit['value'] . ' ' . $unit['unit'] . ($unit['value'] > 1 ? 's' : '');
         }
         return implode(', ', $result);
     }
 
     /**
      * Add a directory in the Phar file
+     *
      * @param string $directory The relative (to composer.json file) path of the directory
      */
     protected function addDir($directory)
@@ -171,6 +166,7 @@ class PharBuilder
 
     /**
      * Add a file in the Phar
+     *
      * @param string $filePath The path MUST be relative to the composer.json parent directory
      */
     protected function addFile($filePath)
@@ -179,25 +175,34 @@ class PharBuilder
 
         //Add the file
         $this->phar->addFile($filePath);
+        // Compress the file (see the reason of one file compressing just after)
         $this->compressFile($filePath);
     }
 
     /**
      * Compress a given file (if compression is enabled and the file type is _compressible_)
-     * @param $file
+     *
+     * Note: The compression is made file by file because Phar have a bug with compressing the whole archive.
+     * The problem is (if I understand correctly) a C implementation issue cause by temporary file resource be opened but not closed (until the end of the compression).
+     * This walk around reduce the performance of the Phar creation (compared to the whole Phar compression (that can be done on small application))
+     *
+     * @param string $file The path in the Phar
      */
-    protected function compressFile($file) {
-        if(!in_array($this->compression, array(\Phar::BZ2, \Phar::GZ))) {
+    protected function compressFile($file)
+    {
+        // Check is compression is enable, if it's not the case stop right away, don't need to go further
+        if (!in_array($this->compression, array(\Phar::BZ2, \Phar::GZ))) {
             return;
         }
+        // Some frequent text based file extension that can be compressed in at a good rate
         $toCompressExtension = array('.php', '.txt', '.md', '.xml', '.js', '.css', '.less', '.scss', '.json', '.html', '.rst');
         $canCompress = false;
-        foreach($toCompressExtension as $extension) {
-            if(substr($file, -strlen($extension)) == $extension) {
+        foreach ($toCompressExtension as $extension) {
+            if (substr($file, -strlen($extension)) == $extension) {
                 $canCompress = true;
             }
         }
-        if(!$canCompress) {
+        if (!$canCompress) {
             return;
         }
 
@@ -208,15 +213,18 @@ class PharBuilder
 
     /**
      * Return the list of project directories
+     *
      * @return array list of relative path
      */
     function readComposerAutoload()
     {
         $dirs = array();
+
         $composer = json_decode(file_get_contents($this->composer), true);
         $autoloads = $composer['autoload'];
         foreach ($autoloads as $autoload) {
-            foreach ($autoload as /*$namespace =>*/ $dir) {
+            foreach ($autoload as /*$namespace =>*/
+                     $dir) {
                 $dirs[] = $dir;
             }
         }

@@ -17,6 +17,14 @@ use Symfony\Component\Console\Question\Question;
 
 /**
  * Class Application.
+ * Expose commands, the main purpose of this class is to get all information to work.
+ *
+ * Exit code of the application are:
+ *  - `0`: Success
+ *  - `1`: Wrong *composer.json* file
+ *  - `2`: Wrong entry point for the application (file does not exist)
+ *  - `3`: Wrong output directory
+ *  - `4`: The Phar filename is not valid
  *
  * @author MacFJA
  * @package MacFJA\PharBuilder
@@ -32,6 +40,8 @@ class Application extends Base
 
         $this->getHelperSet()->set(new FilechooserHelper());
         $app = $this;
+
+        // Register the full interactive command
         $this->register('build')->setDescription('Full interactive Phar builder')->setCode(
             function (InputInterface $input, OutputInterface $output) use ($app) {
                 // -- Initialise reusable variables
@@ -151,12 +161,17 @@ CODE
     }
 
     /**
-     * @param array $composerData The composer.json extra data content
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     * @param string $baseDir The path to the directory that contains the composer.json file
-     * @param string $dataName the name of the data (hyphen word separated)
-     * @return mixed
+     * Read the CLI argument,
+     * if not found read the Composer.json file,
+     * if not provided in composer.json, ask the user
+     *
+     * @param array           $composerData The composer.json extra data content
+     * @param InputInterface  $input        The CLI input interface (reading user input)
+     * @param OutputInterface $output       The CLI output interface (display message)
+     * @param string          $baseDir      The path to the directory that contains the composer.json file
+     * @param string          $dataName     The name of the data (hyphen word separated)
+     *
+     * @return mixed The value of `$dataName`
      */
     protected function readParamComposerAsk(
         $composerData,
@@ -188,7 +203,8 @@ CODE
 
     /**
      * Read and transform special option
-     * @param InputInterface $input
+     *
+     * @param InputInterface $input The CLI input interface (reading user input)
      */
     protected function readSpecialParams(InputInterface $input)
     {
@@ -203,9 +219,11 @@ CODE
 
     /**
      * Get the function name for ask or validate action for a specific data
-     * @param string $type The function type to get (ask or validate)
-     * @param string $dataName the name of the data (hyphen word separated)
-     * @return string
+     *
+     * @param string $type     The function type to get (ask or validate)
+     * @param string $dataName The name of the data (hyphen word separated)
+     *
+     * @return string The formatted function name
      */
     private function getFunctionName($type, $dataName)
     {
@@ -217,9 +235,11 @@ CODE
 
     /**
      * Prompt the user to select the project's composer.json
-     * @param InputInterface $input
+     *
+     * @param InputInterface  $input  The CLI input interface (reading user input)
      * @param OutputInterface $output
-     * @return string
+     *
+     * @return string The composer.json real path
      */
     protected function askComposer(InputInterface $input, OutputInterface $output)
     {
@@ -236,9 +256,11 @@ CODE
 
     /**
      * Validate if the value is a valid composer.json file path.
-     * @param string $value A path to a composer file
-     * @param OutputInterface $output
-     * @return string
+     *
+     * @param string          $value  A path to a composer file
+     * @param OutputInterface $output The CLI output interface (display message)
+     *
+     * @return string The validated path to composer.json
      */
     protected function validateComposer($value, OutputInterface $output)
     {
@@ -257,10 +279,12 @@ CODE
 
     /**
      * Prompt to the user the entry (stub) file. It's the file that launch the application
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     * @param string $baseDir The path to the directory that contains the composer.json file
-     * @return string
+     *
+     * @param InputInterface  $input   The CLI input interface (reading user input)
+     * @param OutputInterface $output  The CLI output interface (display message)
+     * @param string          $baseDir The path to the directory that contains the composer.json file
+     *
+     * @return string The path to the entry point of the application
      */
     protected function askEntryPoint(InputInterface $input, OutputInterface $output, $baseDir)
     {
@@ -277,9 +301,11 @@ CODE
 
     /**
      * Validate if the value is a valid file path.
-     * @param string $value A path to a file
-     * @param OutputInterface $output
-     * @return string
+     *
+     * @param string          $value  A path to a file
+     * @param OutputInterface $output The CLI output interface (display message)
+     *
+     * @return string The validated path to the application entry point
      */
     protected function validateEntryPoint($value, OutputInterface $output)
     {
@@ -295,9 +321,11 @@ CODE
 
     /**
      * Prompt to the user the compression option (default to None)
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     * @return string
+     *
+     * @param InputInterface  $input  The CLI input interface (reading user input)
+     * @param OutputInterface $output The CLI output interface (display message)
+     *
+     * @return string The compression of the Phar
      */
     protected function askCompression(InputInterface $input, OutputInterface $output)
     {
@@ -322,10 +350,13 @@ CODE
     }
 
     /**
-     * Validate if the value is a valid compression. Do nothing because compression is valid in \MacFJA\PharBuilder\PharBuilder class
-     * @param string $value A compression format
-     * @param OutputInterface $output
-     * @return string
+     * Validate if the value is a valid compression.
+     * Do nothing because compression is valid in \MacFJA\PharBuilder\PharBuilder class
+     *
+     * @param string          $value  A compression format
+     * @param OutputInterface $output The CLI output interface (display message)
+     *
+     * @return string The (not really) validated compression
      */
     protected function validateCompression($value, OutputInterface $output)
     {
@@ -335,9 +366,11 @@ CODE
 
     /**
      * Prompt to the user the file name of the Phar (default to "app.phar")
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     * @return string
+     *
+     * @param InputInterface  $input  The CLI input interface (reading user input)
+     * @param OutputInterface $output The CLI output interface (display message)
+     *
+     * @return string The name of the Phar file
      */
     protected function askName(InputInterface $input, OutputInterface $output)
     {
@@ -351,9 +384,11 @@ CODE
 
     /**
      * Validate if the value is a valid filename
-     * @param string $value
-     * @param OutputInterface $output
-     * @return string
+     *
+     * @param string          $value  A filename
+     * @param OutputInterface $output The CLI output interface (display message)
+     *
+     * @return string A validated filename
      */
     protected function validateName($value, OutputInterface $output)
     {
@@ -369,10 +404,12 @@ CODE
 
     /**
      * Prompt to the user the path where to output the Phar archive
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     * @param string $baseDir The path to the directory that contains the composer.json file
-     * @return string
+     *
+     * @param InputInterface  $input   The CLI input interface (reading user input)
+     * @param OutputInterface $output  The CLI output interface (display message)
+     * @param string          $baseDir The path to the directory that contains the composer.json file
+     *
+     * @return string The path to the output directory
      */
     protected function askOutputDir(InputInterface $input, OutputInterface $output, $baseDir)
     {
@@ -392,9 +429,11 @@ CODE
 
     /**
      * Validate if the value is a valid output directory
-     * @param string $value A path to a directory
-     * @param OutputInterface $output
-     * @return string
+     *
+     * @param string          $value  A path to a directory
+     * @param OutputInterface $output The CLI output interface (display message)
+     *
+     * @return string The validated output directory path
      */
     protected function validateOutputDir($value, OutputInterface $output)
     {
@@ -409,11 +448,14 @@ CODE
     }
 
     /**
-     * Do nothing. Normally prompt the user to add directory in the phar, but this option is only read in CLI param and composer.json.
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     * @param string $baseDir The path to the directory that contains the composer.json file
-     * @return array()
+     * Do nothing.
+     * Normally prompt the user to add directory in the phar, but this option is only read in CLI param and composer.json.
+     *
+     * @param InputInterface  $input   The CLI input interface (reading user input)
+     * @param OutputInterface $output  The CLI output interface (display message)
+     * @param string          $baseDir The path to the directory that contains the composer.json file
+     *
+     * @return array An empty array
      */
     protected function askInclude(InputInterface $input, OutputInterface $output, $baseDir)
     {
@@ -423,9 +465,11 @@ CODE
 
     /**
      * Validate if the value are valid directories
-     * @param array $value List of path to directories
-     * @param OutputInterface $output
-     * @return array
+     *
+     * @param array           $value  List of path to directories
+     * @param OutputInterface $output The CLI output interface (display message)
+     *
+     * @return array List of directory path to include
      */
     protected function validateInclude($value, OutputInterface $output)
     {
@@ -442,8 +486,10 @@ CODE
 
     /**
      * Format code to be displayed in CLI help
-     * @param string $code
-     * @return string
+     *
+     * @param string $code The text to format
+     *
+     * @return string A formatted help text
      */
     private function codeHelpParagraph($code)
     {
