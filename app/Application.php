@@ -111,16 +111,11 @@ CODE
             ->setDescription('Create a Phar file from a composer.json')
             ->setCode(
                 function (InputInterface $input, OutputInterface $output) use ($app) {
+                    $output->getFormatter()->setStyle('success', new OutputFormatterStyle('white', 'green'));
+
                     $composerFile = $input->getArgument('composer');
 
-                    if (!file_exists($composerFile) || !is_file($composerFile) || basename($composerFile) != 'composer.json') {
-                        $app->renderException(
-                            new \InvalidArgumentException('The path provided is not a valid <option=bold>composer.json</option=bold> file'),
-                            $output
-                        );
-                        exit(1);
-                    }
-                    $output->getFormatter()->setStyle('success', new OutputFormatterStyle('white', 'green'));
+                    $app->validateComposer($composerFile, $output);
 
                     $composerFile = realpath($composerFile);
                     $baseDir = dirname($composerFile);
