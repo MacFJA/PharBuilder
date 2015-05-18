@@ -90,3 +90,8 @@ The command `build` doesn't take any argument. All options will be ask through t
 ## Important
 
 The only way to add none source code and none vendors files is to use `include` option of the `package` command
+
+## Similar projects
+
+ - https://github.com/clue/phar-composer
+ - https://github.com/box-project/box2

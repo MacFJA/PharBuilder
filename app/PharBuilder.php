@@ -194,7 +194,7 @@ class PharBuilder
         if (!in_array($this->compression, array(\Phar::BZ2, \Phar::GZ))) {
             return;
         }
-        // Some frequent text based file extension that can be compressed in at a good rate
+        // Some frequent text based file extension that can be compressed in a good rate
         $toCompressExtension = array('.php', '.txt', '.md', '.xml', '.js', '.css', '.less', '.scss', '.json', '.html', '.rst');
         $canCompress = false;
         foreach ($toCompressExtension as $extension) {
