@@ -95,3 +95,4 @@ The only way to add none source code and none vendors files is to use `include` 
 
  - https://github.com/clue/phar-composer
  - https://github.com/box-project/box2
+ - https://github.com/IcecaveStudios/near
