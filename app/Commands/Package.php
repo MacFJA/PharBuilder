@@ -18,11 +18,14 @@ use Symfony\Component\Console\Output\OutputInterface;
  *  - User input
  *
  * @author  MacFJA
+ * @license MIT
  * @package MacFJA\PharBuilder\Commands
  */
 class Package extends Base {
     /**
      * Configure the command (name, arguments and descriptions)
+     *
+     * @throws \InvalidArgumentException When the name is invalid
      */
     protected function configure()
     {

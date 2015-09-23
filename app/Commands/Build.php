@@ -13,11 +13,14 @@ use Symfony\Component\Console\Output\OutputInterface;
  * The command `build` of the application. This command is full interactive.
  *
  * @author  MacFJA
+ * @license MIT
  * @package MacFJA\PharBuilder\Commands
  */
 class Build extends Base {
     /**
      * Configure the command (name and description)
+     *
+     * @throws \InvalidArgumentException When the name is invalid
      */
     protected function configure()
     {

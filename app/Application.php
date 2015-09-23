@@ -24,7 +24,8 @@ use Symfony\Component\Console\Output\OutputInterface;
  *  - `5`: PHP ini wrongly setting up
  *  - `6`: Require input, but in no-interactive mode
  *
- * @author MacFJA
+ * @author  MacFJA
+ * @license MIT
  * @package MacFJA\PharBuilder
  */
 class Application extends Base

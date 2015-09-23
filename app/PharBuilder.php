@@ -14,6 +14,7 @@ use webignition\ReadableDuration\ReadableDuration;
  * This class create the Phar file of a specific composer based project
  *
  * @author  MacFJA
+ * @license MIT
  * @package MacFJA\PharBuilder
  */
 class PharBuilder
@@ -52,7 +53,7 @@ class PharBuilder
      * @param int             $compression The compression type of the Phar (see Phar constant)
      * @param string[]        $includes    List of directories to include
      */
-    function __construct(OutputInterface $output, $composer, $outputDir, $pharName, $stubFile, $compression, $includes)
+    public function __construct(OutputInterface $output, $composer, $outputDir, $pharName, $stubFile, $compression, $includes)
     {
         $compression = strtolower($compression);
 
@@ -191,7 +192,7 @@ class PharBuilder
     protected function compressFile($file)
     {
         // Check is compression is enable, if it's not the case stop right away, don't need to go further
-        if (!in_array($this->compression, array(\Phar::BZ2, \Phar::GZ))) {
+        if (!in_array($this->compression, array(\Phar::BZ2, \Phar::GZ), true)) {
             return;
         }
         // Some frequent text based file extension that can be compressed in a good rate
@@ -216,7 +217,7 @@ class PharBuilder
      *
      * @return array list of relative path
      */
-    function readComposerAutoload()
+    protected function readComposerAutoload()
     {
         $dirs = array();
 
