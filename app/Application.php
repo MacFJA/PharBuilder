@@ -60,7 +60,11 @@ class Application extends Base
     public function checkSystem(OutputInterface $output) {
         $pharReadonly = ini_get('phar.readonly');
         if ($pharReadonly === '1') {
-            $this->renderException(new \Exception('The configuration of your PHP do not authorize PHAR creation. (see phar.readonly in you php.ini'), $output);
+            $this->renderException(
+                new \Exception(
+                    'The configuration of your PHP do not authorize PHAR creation. (see phar.readonly in you php.ini)' . PHP_EOL .
+                    'Alternatively you can run <comment>php -d phar.readonly=0 ' . implode(' ', $_SERVER['argv']) . '</comment>.'
+                ), $output);
             exit(5);
         }
 
