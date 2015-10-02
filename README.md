@@ -7,12 +7,12 @@ Create a Phar (PHp ARchive) file of your Composer based PHP application
 ### Composer
 
 ```sh
-composer require macfja/phar-builder @dev
+composer require macfja/phar-builder
 ```
 
 ### Phar archive
 
-You can download the Phar directly on GitHub (https://github.com/MacFJA/PharBuilder)
+You can download the Phar directly on GitHub in the release section (https://github.com/MacFJA/PharBuilder)
 
 ## Usage
 
@@ -25,7 +25,7 @@ vendor/bin/phar-builder package composer.json
 ### With the phar
 
 ```sh
-php phar-builder.phar package path-to-your-composer.json-file
+phar-builder.phar package path-to-your-composer.json-file
 ```
 
 ## Options

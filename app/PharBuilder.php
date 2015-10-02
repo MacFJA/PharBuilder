@@ -82,6 +82,7 @@ class PharBuilder
         $this->phar->startBuffering();
 
         $this->phar->setStub(
+            '#!/usr/bin/env php' . PHP_EOL .
             '<?php Phar::mapPhar(); include "phar://' . $this->alias . '/' . $this->stubFile . '"; __HALT_COMPILER(); ?>'
         );
 
