@@ -50,7 +50,7 @@ class PharBuilder
      * @param string          $outputDir   The path to the directory where the phar will be created
      * @param string          $pharName    The name of the phar
      * @param string          $stubFile    The path of entry point of the application
-     * @param int             $compression The compression type of the Phar (see Phar constant)
+     * @param string          $compression The compression type of the Phar (no, none, gzip, bzip2)
      * @param string[]        $includes    List of directories to include
      */
     public function __construct(OutputInterface $output, $composer, $outputDir, $pharName, $stubFile, $compression, $includes)
@@ -200,7 +200,7 @@ class PharBuilder
         $toCompressExtension = array('.php', '.txt', '.md', '.xml', '.js', '.css', '.less', '.scss', '.json', '.html', '.rst');
         $canCompress = false;
         foreach ($toCompressExtension as $extension) {
-            if (substr($file, -strlen($extension)) == $extension) {
+            if (substr($file, -strlen($extension)) === $extension) {
                 $canCompress = true;
             }
         }

@@ -93,9 +93,9 @@ CODE
          */
         $parsed = json_decode(file_get_contents($composerFile), true);
         // check if our info is here
-        if (!isset($parsed['extra'])) {
+        if (!array_key_exists('extra', $parsed)) {
             $parsed['extra'] = array('phar-builder' => array());
-        } elseif (!isset($parsed['extra']['phar-builder'])) {
+        } elseif (!array_key_exists('phar-builder', $parsed['extra'])) {
             $parsed['extra']['phar-builder'] = array();
         }
         $extraData = $parsed['extra']['phar-builder'];
@@ -134,7 +134,7 @@ CODE
         $dataName
     ) {
         if ($input->getOption($dataName) == null) {
-            if (isset($composerData[$dataName])) {
+            if (array_key_exists($dataName, $composerData)) {
                 $input->setOption($dataName, $composerData[$dataName]);
             } else {
                 if (!$input->isInteractive()) {
