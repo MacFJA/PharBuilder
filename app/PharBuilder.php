@@ -75,7 +75,7 @@ class PharBuilder
     {
         $startTime = time();
         $this->output->write('Reading composer.json...', false);
-        $dirs = $this->readComposerAutoload();
+        $dirsFiles = $this->readComposerAutoload();
         $this->output->writeln(' <info>OK</info>');
 
         $this->phar = new \Phar($this->pharName, \FilesystemIterator::CURRENT_AS_FILEINFO | \FilesystemIterator::KEY_AS_FILENAME, $this->alias);
@@ -91,8 +91,11 @@ class PharBuilder
         //Adding files to the archive
         $this->output->writeln('Adding files to Phar...');
         // Add all project file (based on composer declaration)
-        foreach ($dirs as $dir) {
+        foreach ($dirsFiles['dirs'] as $dir) {
             $this->addDir($dir);
+        }
+        foreach ($dirsFiles['files'] as $file) {
+            $this->addFile($file);
         }
         // Add included directories
         foreach ($this->includes as $dir) {
@@ -221,15 +224,27 @@ class PharBuilder
     protected function readComposerAutoload()
     {
         $dirs = array();
+        $files = array();
 
         $composer = json_decode(file_get_contents($this->composer), true);
         $autoloads = $composer['autoload'];
-        foreach ($autoloads as $autoload) {
-            foreach ($autoload as /*$namespace =>*/
-                     $dir) {
-                $dirs[] = $dir;
+        foreach ($autoloads as $type => $autoload) {
+
+            if (in_array($type, array('psr-4', 'psr-0'), true)) {
+                foreach ($autoload as /*$namespace =>*/ $dir) {
+                    $dirs[] = $dir;
+                }
+            } elseif (in_array($type, array('files', 'classmap'), true)) {
+                foreach ($autoload as $item) {
+                    if (is_dir($item)) {
+                        $dirs[] = $item;
+                    } elseif (is_file($item)) {
+                        $files[] = $item;
+                    }
+                }
             }
+
         }
-        return $dirs;
+        return array('dirs' => $dirs, 'files' => $files);
     }
 }
