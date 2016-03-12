@@ -3,8 +3,9 @@
 
 namespace MacFJA\PharBuilder\Commands;
 
-
 use MacFJA\PharBuilder\PharBuilder;
+use Symfony\Component\Console\Exception\InvalidArgumentException;
+use Symfony\Component\Console\Exception\RuntimeException;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -12,13 +13,16 @@ use Symfony\Component\Console\Output\OutputInterface;
  * Class Build.
  * The command `build` of the application. This command is full interactive.
  *
+ * @package MacFJA\PharBuilder\Commands
  * @author  MacFJA
  * @license MIT
- * @package MacFJA\PharBuilder\Commands
  */
-class Build extends Base {
+class Build extends Base
+{
     /**
      * Configure the command (name and description)
+     *
+     * @return void
      *
      * @throws \InvalidArgumentException When the name is invalid
      */
@@ -35,6 +39,14 @@ class Build extends Base {
      * @param OutputInterface $output The CLI output interface (display message)
      *
      * @return void
+     *
+     * @throws InvalidArgumentException
+     * @throws RuntimeException
+     * @throws \RuntimeException
+     * @throws \BadMethodCallException
+     * @throws \UnexpectedValueException
+     * @throws \InvalidArgumentException
+     * @throws \Exception
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
@@ -63,6 +75,4 @@ class Build extends Base {
         new PharBuilder($output, $composerFile, $outputDir, $name, $stubFile, $compression, array());
         $output->writeln('');
     }
-
-
 }

@@ -3,8 +3,9 @@
 
 namespace MacFJA\PharBuilder\Commands;
 
-
 use MacFJA\PharBuilder\PharBuilder;
+use Symfony\Component\Console\Exception\InvalidArgumentException;
+use Symfony\Component\Console\Exception\RuntimeException;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -17,13 +18,16 @@ use Symfony\Component\Console\Output\OutputInterface;
  *  - `composer.json` file
  *  - User input
  *
+ * @package MacFJA\PharBuilder\Commands
  * @author  MacFJA
  * @license MIT
- * @package MacFJA\PharBuilder\Commands
  */
-class Package extends Base {
+class Package extends Base
+{
     /**
      * Configure the command (name, arguments and descriptions)
+     *
+     * @return void
      *
      * @throws \InvalidArgumentException When the name is invalid
      */
@@ -36,20 +40,25 @@ class Package extends Base {
                 'compression',
                 '',
                 InputOption::VALUE_REQUIRED,
+                //@codingStandardsIgnoreStart
                 'The compression of your Phar ' .
-                '(possible values <option=bold>No</option=bold>, <option=bold>GZip</option=bold>, <option=bold>BZip2</option=bold>)'
+                '(possible values <option=bold>No</option=bold>, <option=bold>GZip</option=bold>, ' .
+                '<option=bold>BZip2</option=bold>)'
+                //@codingStandardsIgnoreEnd
             )
             ->addOption('no-compression', 'f', InputOption::VALUE_NONE, 'Do not compress the Phar')
             ->addOption('gzip', 'z', InputOption::VALUE_NONE, 'Set the compression of the Phar to GZip')
             ->addOption('bzip2', 'b', InputOption::VALUE_NONE, 'Set the compression of the Phar to BZip2')
             ->addOption('name', '', InputOption::VALUE_REQUIRED, 'The filename of the Phar archive')
             ->addOption('output-dir', 'o', InputOption::VALUE_REQUIRED, 'The output directory of the Phar archive')
-            ->addOption('include', 'i', InputOption::VALUE_IS_ARRAY | InputOption::VALUE_REQUIRED, 'List of directories to add in Phar')
+            ->addOption(
+                'include',
+                'i',
+                InputOption::VALUE_IS_ARRAY | InputOption::VALUE_REQUIRED,
+                'List of directories to add in Phar'
+            )
             ->setHelp(
-                'Create a Phar file of a composer project.' . PHP_EOL .
-                'The command can get values from CLI argument, by reading composer file or by ask (in this order)' . PHP_EOL .
-                'If an option is both defined in the composer file and in the CLI argument, the CLI argument will be used.' . PHP_EOL .
-                'Example of a composer configuration:' . PHP_EOL . PHP_EOL .
+                file_get_contents(__DIR__.DIRECTORY_SEPARATOR.'package-help.txt') .
                 $this->codeHelpParagraph(
                     <<< CODE
 <info>... The content of your composer.json file</info>
@@ -76,6 +85,12 @@ CODE
      * @param OutputInterface $output The CLI output interface (display message)
      *
      * @return void
+     *
+     * @throws RuntimeException
+     * @throws InvalidArgumentException
+     * @throws \BadMethodCallException
+     * @throws \UnexpectedValueException
+     * @throws \InvalidArgumentException
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
@@ -84,7 +99,7 @@ CODE
         $this->validateComposer($composerFile, $output);
 
         $composerFile = realpath($composerFile);
-        $baseDir = dirname($composerFile);
+        $baseDir      = dirname($composerFile);
         chdir($baseDir);
 
         /*
@@ -102,11 +117,11 @@ CODE
 
         $this->readSpecialParams($input);
 
-        $stubFile = $this->readParamComposerAsk($extraData, $input, $output, $baseDir, 'entry-point');
+        $stubFile    = $this->readParamComposerAsk($extraData, $input, $output, $baseDir, 'entry-point');
         $compression = $this->readParamComposerAsk($extraData, $input, $output, $baseDir, 'compression');
-        $name = $this->readParamComposerAskName($extraData, $input, $output);
-        $outputDir = $this->readParamComposerAsk($extraData, $input, $output, $baseDir, 'output-dir');
-        $includes = $this->readParamComposerAsk($extraData, $input, $output, $baseDir, 'include');
+        $name        = $this->readParamComposerAskName($extraData, $input, $output);
+        $outputDir   = $this->readParamComposerAsk($extraData, $input, $output, $baseDir, 'output-dir');
+        $includes    = $this->readParamComposerAsk($extraData, $input, $output, $baseDir, 'include');
 
         $output->writeln('');
         new PharBuilder($output, $composerFile, $outputDir, $name, $stubFile, $compression, $includes);
@@ -167,6 +182,9 @@ CODE
      * @param OutputInterface $output       The CLI output interface (display message)
      *
      * @return mixed The name of the phar
+     *
+     * @throws InvalidArgumentException
+     * @throws RuntimeException
      */
     private function readParamComposerAskName($composerData, InputInterface $input, OutputInterface $output)
     {
@@ -177,7 +195,7 @@ CODE
                 if (!$input->isInteractive()) {
                     $this->throwErrorForNoInteractiveMode($output);
                 }
-                $input->setOption('name',$this->askPharName($input, $output));
+                $input->setOption('name', $this->askPharName($input, $output));
             }
         }
         return $this->validatePharName($input->getOption('name'), $output);
@@ -187,6 +205,8 @@ CODE
      * Read and transform special option
      *
      * @param InputInterface $input The CLI input interface (reading user input)
+     *
+     * @return void
      */
     protected function readSpecialParams(InputInterface $input)
     {
@@ -201,14 +221,17 @@ CODE
 
     /**
      * Do nothing.
-     * Normally prompt the user to add directory in the phar, but this option is only read in CLI param and composer.json.
+     * Normally prompt the user to add directory in the phar,
+     * but this option is only read in CLI param and composer.json.
      *
      * @param InputInterface  $input   The CLI input interface (reading user input)
      * @param OutputInterface $output  The CLI output interface (display message)
      * @param string          $baseDir The path to the directory that contains the composer.json file
      *
      * @return array An empty array
-     */
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter) -- Do nothing function
+     *///@codingStandardsIgnoreLine
     protected function askInclude(InputInterface $input, OutputInterface $output, $baseDir)
     {
         // Do nothing

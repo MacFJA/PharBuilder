@@ -3,10 +3,11 @@
 
 namespace MacFJA\PharBuilder\Commands;
 
-
 use MacFJA\Symfony\Console\Filechooser\FilechooserHelper;
 use MacFJA\Symfony\Console\Filechooser\FileFilter;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Exception\InvalidArgumentException;
+use Symfony\Component\Console\Exception\RuntimeException;
 use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -17,9 +18,9 @@ use Symfony\Component\Console\Question\Question;
  * Class Base.
  * Contains all shared function for the getting all phar information
  *
+ * @package MacFJA\PharBuilder\Commands
  * @author  MacFJA
  * @license MIT
- * @package MacFJA\PharBuilder\Commands
  */
 abstract class Base extends Command
 {
@@ -43,17 +44,28 @@ abstract class Base extends Command
      * Prompt the user to select the project's composer.json
      *
      * @param InputInterface  $input  The CLI input interface (reading user input)
-     * @param OutputInterface $output
+     * @param OutputInterface $output The CLI output interface (display message)
      *
      * @return string The composer.json real path
+     *
+     * @throws InvalidArgumentException
+     * @throws \RuntimeException
+     * @throws \Exception
      */
     protected function askComposer(InputInterface $input, OutputInterface $output)
     {
-        /** @var FilechooserHelper $filechooser */
+        /**
+         * The file selector helper
+         *
+         * @var FilechooserHelper $filechooser
+         */
         $filechooser = $this->getApplication()->getHelperSet()->get('filechooser');
 
-        $composerFilter = new FileFilter('Where is your application <option=bold>composer.json</option=bold> file? ', './composer.json');
-        $composerFile = $filechooser->ask($input, $output, $composerFilter);
+        $composerFilter = new FileFilter(
+            'Where is your application <option=bold>composer.json</option=bold> file? ',
+            './composer.json'
+        );
+        $composerFile   = $filechooser->ask($input, $output, $composerFilter);
 
         $this->validateComposer($composerFile, $output);
 
@@ -68,12 +80,17 @@ abstract class Base extends Command
      * @param OutputInterface $output The CLI output interface (display message)
      *
      * @return string The validated path to composer.json
+     *
+     * @SuppressWarnings(PHPMD.ExitExpression) -- Normal/Wanted behavior
      */
     protected function validateComposer($value, OutputInterface $output)
     {
         if (!file_exists($value) || !is_file($value) || 'composer.json' !== basename($value)) {
             $this->getApplication()->renderException(
-                new \InvalidArgumentException('The path provided is not a valid <option=bold>composer.json</option=bold> file' . PHP_EOL . '  Path: ' . $value),
+                new \InvalidArgumentException(
+                    'The path provided is not a valid <option=bold>composer.json</option=bold> file' . PHP_EOL .
+                    '  Path: ' . $value
+                ),
                 $output
             );
             exit(1);
@@ -89,14 +106,25 @@ abstract class Base extends Command
      * @param string          $baseDir The path to the directory that contains the composer.json file
      *
      * @return string The path to the entry point of the application
+     *
+     * @throws InvalidArgumentException
+     * @throws \RuntimeException
+     * @throws \Exception
      */
     protected function askEntryPoint(InputInterface $input, OutputInterface $output, $baseDir)
     {
-        /** @var FilechooserHelper $filechooser */
+        /**
+         * The file selector helper
+         *
+         * @var FilechooserHelper $filechooser
+         */
         $filechooser = $this->getApplication()->getHelperSet()->get('filechooser');
 
-        $stubFilter = new FileFilter('Where is your application start file? ', $baseDir . DIRECTORY_SEPARATOR . 'index.php');
-        $stubFile = $filechooser->ask($input, $output, $stubFilter);
+        $stubFilter = new FileFilter(
+            'Where is your application start file? ',
+            $baseDir . DIRECTORY_SEPARATOR . 'index.php'
+        );
+        $stubFile   = $filechooser->ask($input, $output, $stubFilter);
 
         $this->validateEntryPoint($stubFile, $output);
 
@@ -111,12 +139,16 @@ abstract class Base extends Command
      * @param OutputInterface $output The CLI output interface (display message)
      *
      * @return string The validated path to the application entry point
+     *
+     * @SuppressWarnings(PHPMD.ExitExpression) -- Normal/Wanted behavior
      */
     protected function validateEntryPoint($value, OutputInterface $output)
     {
         if (!file_exists($value) || !is_file($value)) {
             $this->getApplication()->renderException(
-                new \InvalidArgumentException('The path provided for the entry point is not a valid file' . PHP_EOL . '  Path: ' . $value),
+                new \InvalidArgumentException(
+                    'The path provided for the entry point is not a valid file' . PHP_EOL . '  Path: ' . $value
+                ),
                 $output
             );
             exit(2);
@@ -131,10 +163,17 @@ abstract class Base extends Command
      * @param OutputInterface $output The CLI output interface (display message)
      *
      * @return string The compression of the Phar
+     *
+     * @throws InvalidArgumentException
+     * @throws RuntimeException
      */
     protected function askCompression(InputInterface $input, OutputInterface $output)
     {
-        /** @var QuestionHelper $questionHelper */
+        /**
+         * The helper for asking data from the CLI
+         *
+         * @var QuestionHelper $questionHelper
+         */
         $questionHelper = $this->getApplication()->getHelperSet()->get('question');
 
         $compressChoice = new ChoiceQuestion('Do you want to compress the Phar? [<fg=blue>0</fg=blue>]', array(
@@ -162,6 +201,8 @@ abstract class Base extends Command
      * @param OutputInterface $output The CLI output interface (display message)
      *
      * @return string The (not really) validated compression
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter) -- Do nothing function
      */
     protected function validateCompression($value, OutputInterface $output)
     {
@@ -176,10 +217,17 @@ abstract class Base extends Command
      * @param OutputInterface $output The CLI output interface (display message)
      *
      * @return string The name of the Phar file
+     *
+     * @throws RuntimeException
+     * @throws InvalidArgumentException
      */
     protected function askPharName(InputInterface $input, OutputInterface $output)
     {
-        /** @var QuestionHelper $questionHelper */
+        /**
+         * The helper for asking data from the CLI
+         *
+         * @var QuestionHelper $questionHelper
+         */
         $questionHelper = $this->getApplication()->getHelperSet()->get('question');
 
         $nameQuestion = new Question('What is the name of the phar? [<fg=blue>app.phar</fg=blue>] ', 'app.phar');
@@ -195,12 +243,16 @@ abstract class Base extends Command
      * @param OutputInterface $output The CLI output interface (display message)
      *
      * @return string A validated filename
+     *
+     * @SuppressWarnings(PHPMD.ExitExpression) -- Normal/Wanted behavior
      */
     protected function validatePharName($value, OutputInterface $output)
     {
         if (strpos($value, DIRECTORY_SEPARATOR) !== false) {
             $this->getApplication()->renderException(
-                new \InvalidArgumentException('The name for the Phar is not a valid filename' . PHP_EOL . '  Name: ' . $value),
+                new \InvalidArgumentException(
+                    'The name for the Phar is not a valid filename' . PHP_EOL . '  Name: ' . $value
+                ),
                 $output
             );
             exit(4);
@@ -216,10 +268,18 @@ abstract class Base extends Command
      * @param string          $baseDir The path to the directory that contains the composer.json file
      *
      * @return string The path to the output directory
+     *
+     * @throws InvalidArgumentException
+     * @throws \RuntimeException
+     * @throws \Exception
      */
     protected function askOutputDir(InputInterface $input, OutputInterface $output, $baseDir)
     {
-        /** @var FilechooserHelper $filechooser */
+        /**
+         * The file selector helper
+         *
+         * @var FilechooserHelper $filechooser
+         */
         $filechooser = $this->getApplication()->getHelperSet()->get('filechooser');
 
         $outputFilter = new FileFilter('Where do you want to save your phar application? ', dirname(
@@ -241,12 +301,17 @@ abstract class Base extends Command
      * @param OutputInterface $output The CLI output interface (display message)
      *
      * @return string The validated output directory path
+     *
+     * @SuppressWarnings(PHPMD.ExitExpression) -- Normal/Wanted behavior
      */
     protected function validateOutputDir($value, OutputInterface $output)
     {
         if (is_file($value)) {
             $this->getApplication()->renderException(
-                new \InvalidArgumentException('The path provided for the output directory is not a valid directory' . PHP_EOL . '  Path: ' . $value),
+                new \InvalidArgumentException(
+                    'The path provided for the output directory is not a valid directory' . PHP_EOL .
+                    '  Path: ' . $value
+                ),
                 $output
             );
             exit(3);
@@ -278,10 +343,10 @@ abstract class Base extends Command
     protected function codeHelpParagraph($code)
     {
         $result = '  │<comment>  ' . str_replace(
-                PHP_EOL,
-                '</comment>' . PHP_EOL . '  │<comment>  ',
-                $code
-            ) . '</comment>';
+            PHP_EOL,
+            '</comment>' . PHP_EOL . '  │<comment>  ',
+            $code
+        ) . '</comment>';
 
         return '  ┌' . PHP_EOL . $result . PHP_EOL . '  └';
     }
@@ -291,11 +356,19 @@ abstract class Base extends Command
      * Exit code: `6`
      *
      * @param OutputInterface $output The CLI output interface (display message)
+     *
+     * @return void
+     *
+     * @SuppressWarnings(PHPMD.ExitExpression) -- Normal/Wanted behavior
      */
     protected function throwErrorForNoInteractiveMode(OutputInterface $output)
     {
         $this->getApplication()->renderException(
-            new \InvalidArgumentException('The terminal set the application in a no-interactive mode. therefor this command cannot be used as its require input'),
+            new \InvalidArgumentException(
+                //@codingStandardsIgnoreLine
+                'The terminal set the application in a no-interactive mode. ' .
+                'therefor this command cannot be used as its require input'
+            ),
             $output
         );
         exit(6);

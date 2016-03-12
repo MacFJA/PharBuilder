@@ -37,7 +37,7 @@ They are 2 commands available:
 
 ### Command `package`
 
-_Extract from the `vendor/phar-builder help package` command_
+_Extract from the `vendor/bin/phar-builder help package` command_
 
 ```
 Usage:
@@ -96,3 +96,7 @@ The only way to add none source code and none vendors files is to use `include` 
  - https://github.com/clue/phar-composer
  - https://github.com/box-project/box2
  - https://github.com/IcecaveStudios/near
+
+## License
+
+The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
