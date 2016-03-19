@@ -62,8 +62,9 @@ class Application extends Base
         if ($pharReadonly === '1') {
             $this->renderException(
                 new \Exception(
-                    'The configuration of your PHP do not authorize PHAR creation. (see phar.readonly in you php.ini)' . PHP_EOL .
-                    'Alternatively you can run <comment>php -d phar.readonly=0 ' . implode(' ', $_SERVER['argv']) . '</comment>.'
+                    'The configuration of your PHP do not authorize PHAR creation. (see phar.readonly in you php.ini)' .
+                    PHP_EOL . ' ' . PHP_EOL . 'Alternatively you can run:' . PHP_EOL .
+                    'php -d phar.readonly=0 ' . implode(' ', $_SERVER['argv']) . '.'
                 ), $output);
             exit(5);
         }
