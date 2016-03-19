@@ -105,7 +105,19 @@ class PharBuilder
         $this->addDir('vendor');
         $this->addFile('composer.json');
         $this->addFile('composer.lock');
-        $this->addFile($this->stubFile);
+
+        $stub = file_get_contents($this->stubFile);
+        $shebang = "~^#!/(.*)\n~";
+        $stub = preg_replace($shebang, "", $stub, -1, $shebangFound);
+
+        if ($shebangFound) {
+            $tempStub = tempnam(sys_get_temp_dir(), "stub");
+            file_put_contents($tempStub, $stub);
+            $this->addFile($tempStub, $this->stubFile);
+        } else {
+            $this->addFile($this->stubFile);
+        }
+
         $this->output->writeln("\r\033[2K" . '   <info>All files added</info>');
 
         $this->phar->stopBuffering();
@@ -172,16 +184,17 @@ class PharBuilder
     /**
      * Add a file in the Phar
      *
-     * @param string $filePath The path MUST be relative to the composer.json parent directory
+     * @param string $filePath The path MUST be relative to the composer.json parent directory, otherwise localPath has to be set.
+     * @param string $localPath File name in the PHAR archive if filePath is outside of the composer.json parent directory.
      */
-    protected function addFile($filePath)
+    protected function addFile($filePath, $localPath = null)
     {
         $this->output->write("\r\033[2K" . ' > ' . $filePath);
 
         //Add the file
-        $this->phar->addFile($filePath);
+        $this->phar->addFile($filePath, $localPath ?: $filePath);
         // Compress the file (see the reason of one file compressing just after)
-        $this->compressFile($filePath);
+        $this->compressFile($localPath ?: $filePath);
     }
 
     /**
