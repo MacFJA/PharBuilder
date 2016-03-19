@@ -52,7 +52,7 @@ class Build extends Base {
         $compression = $this->askCompression($input, $output);
 
         // -- Ask for the name of the phar file
-        $name = $this->askName($input, $output);
+        $name = $this->askPharName($input, $output);
 
         // -- Ask for the output folder
         $outputDir = $this->askOutputDir($input, $output, dirname($composerFile));

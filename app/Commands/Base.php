@@ -177,7 +177,7 @@ abstract class Base extends Command
      *
      * @return string The name of the Phar file
      */
-    protected function askName(InputInterface $input, OutputInterface $output)
+    protected function askPharName(InputInterface $input, OutputInterface $output)
     {
         /** @var QuestionHelper $questionHelper */
         $questionHelper = $this->getApplication()->getHelperSet()->get('question');
@@ -196,7 +196,7 @@ abstract class Base extends Command
      *
      * @return string A validated filename
      */
-    protected function validateName($value, OutputInterface $output)
+    protected function validatePharName($value, OutputInterface $output)
     {
         if (strpos($value, DIRECTORY_SEPARATOR) !== false) {
             $this->getApplication()->renderException(

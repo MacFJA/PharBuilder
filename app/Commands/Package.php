@@ -104,7 +104,7 @@ CODE
 
         $stubFile = $this->readParamComposerAsk($extraData, $input, $output, $baseDir, 'entry-point');
         $compression = $this->readParamComposerAsk($extraData, $input, $output, $baseDir, 'compression');
-        $name = $this->readParamComposerAsk($extraData, $input, $output, $baseDir, 'name');
+        $name = $this->readParamComposerAskName($extraData, $input, $output);
         $outputDir = $this->readParamComposerAsk($extraData, $input, $output, $baseDir, 'output-dir');
         $includes = $this->readParamComposerAsk($extraData, $input, $output, $baseDir, 'include');
 
@@ -155,6 +155,32 @@ CODE
         );
 
         return $data;
+    }
+
+    /**
+     * Read the CLI argument for the phar name,
+     * if not found read the Composer.json file,
+     * if not provided in composer.json, ask the user
+     *
+     * @param array           $composerData The composer.json extra data content
+     * @param InputInterface  $input        The CLI input interface (reading user input)
+     * @param OutputInterface $output       The CLI output interface (display message)
+     *
+     * @return mixed The name of the phar
+     */
+    private function readParamComposerAskName($composerData, InputInterface $input, OutputInterface $output)
+    {
+        if ($input->getOption('name') == null) {
+            if (array_key_exists('name', $composerData)) {
+                $input->setOption('name', $composerData['name']);
+            } else {
+                if (!$input->isInteractive()) {
+                    $this->throwErrorForNoInteractiveMode($output);
+                }
+                $input->setOption('name',$this->askPharName($input, $output));
+            }
+        }
+        return $this->validatePharName($input->getOption('name'), $output);
     }
 
     /**
