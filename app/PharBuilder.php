@@ -105,18 +105,7 @@ class PharBuilder
         $this->addDir('vendor');
         $this->addFile('composer.json');
         $this->addFile('composer.lock');
-
-        $stub = file_get_contents($this->stubFile);
-        $shebang = "~^#!/(.*)\n~";
-        $stub = preg_replace($shebang, "", $stub, -1, $shebangFound);
-
-        if ($shebangFound) {
-            $tempStub = tempnam(sys_get_temp_dir(), "stub");
-            file_put_contents($tempStub, $stub);
-            $this->addFile($tempStub, $this->stubFile);
-        } else {
-            $this->addFile($this->stubFile);
-        }
+        $this->addStub($this->stubFile);
 
         $this->output->writeln("\r\033[2K" . '   <info>All files added</info>');
 
@@ -182,19 +171,36 @@ class PharBuilder
     }
 
     /**
-     * Add a file in the Phar
+     * Add a file to the Phar and remove the shebang if present
      *
-     * @param string $filePath The path MUST be relative to the composer.json parent directory, otherwise localPath has to be set.
-     * @param string $localPath File name in the PHAR archive if filePath is outside of the composer.json parent directory.
+     * @param string $filePath The path MUST be relative to the composer.json parent directory
      */
-    protected function addFile($filePath, $localPath = null)
+    protected function addStub($filePath) {
+        $this->output->write("\r\033[2K" . ' > ' . $filePath);
+
+        $stub = file_get_contents();
+
+        // Remove shebang if present
+        $shebang = "~^#!/(.*)\n~";
+        $stub = preg_replace($shebang, "", $stub, -1, $shebangFound);
+
+        $this->addFromString($this->stubFile, $stub);
+        $this->compressFile($filePath);
+    }
+
+    /**
+     * Add a file to the Phar
+     *
+     * @param string $filePath The path MUST be relative to the composer.json parent directory
+     */
+    protected function addFile($filePath)
     {
         $this->output->write("\r\033[2K" . ' > ' . $filePath);
 
         //Add the file
-        $this->phar->addFile($filePath, $localPath ?: $filePath);
+        $this->phar->addFile($filePath);
         // Compress the file (see the reason of one file compressing just after)
-        $this->compressFile($localPath ?: $filePath);
+        $this->compressFile($filePath);
     }
 
     /**
