@@ -171,20 +171,20 @@ class PharBuilder
     }
 
     /**
-     * Add a file to the Phar and remove the shebang if present
+     * Add stubfile to the Phar and remove the shebang if present
      *
      * @param string $filePath The path MUST be relative to the composer.json parent directory
      */
     protected function addStub($filePath) {
         $this->output->write("\r\033[2K" . ' > ' . $filePath);
 
-        $stub = file_get_contents();
+        $stub = file_get_contents($filePath);
 
         // Remove shebang if present
         $shebang = "~^#!/(.*)\n~";
-        $stub = preg_replace($shebang, "", $stub, -1, $shebangFound);
+        $stub = preg_replace($shebang, '', $stub, -1, $shebangFound);
 
-        $this->addFromString($this->stubFile, $stub);
+        $this->phar->addFromString($this->stubFile, $stub);
         $this->compressFile($filePath);
     }
 
