@@ -105,7 +105,8 @@ class PharBuilder
         $this->addDir('vendor');
         $this->addFile('composer.json');
         $this->addFile('composer.lock');
-        $this->addFile($this->stubFile);
+        $this->addStub($this->stubFile);
+
         $this->output->writeln("\r\033[2K" . '   <info>All files added</info>');
 
         $this->phar->stopBuffering();
@@ -170,7 +171,25 @@ class PharBuilder
     }
 
     /**
-     * Add a file in the Phar
+     * Add a file to the Phar and remove the shebang if present
+     *
+     * @param string $filePath The path MUST be relative to the composer.json parent directory
+     */
+    protected function addStub($filePath) {
+        $this->output->write("\r\033[2K" . ' > ' . $filePath);
+
+        $stub = file_get_contents();
+
+        // Remove shebang if present
+        $shebang = "~^#!/(.*)\n~";
+        $stub = preg_replace($shebang, "", $stub, -1, $shebangFound);
+
+        $this->addFromString($this->stubFile, $stub);
+        $this->compressFile($filePath);
+    }
+
+    /**
+     * Add a file to the Phar
      *
      * @param string $filePath The path MUST be relative to the composer.json parent directory
      */
