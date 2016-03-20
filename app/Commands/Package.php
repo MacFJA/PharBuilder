@@ -35,6 +35,7 @@ class Package extends Base
     {
         $this->setName('package')
             ->addArgument('composer', InputArgument::REQUIRED, 'The path to the composer.json')
+            ->addOption('include-dev', '', InputOption::VALUE_NONE, 'Include development packages and path')
             ->addOption('entry-point', 'e', InputOption::VALUE_REQUIRED, 'Your application start file')
             ->addOption(
                 'compression',
@@ -117,6 +118,7 @@ CODE
 
         $this->readSpecialParams($input);
 
+        $keepDev     = $this->readParamComposerAsk($extraData, $input, $output, $baseDir, 'include-dev');
         $stubFile    = $this->readParamComposerAsk($extraData, $input, $output, $baseDir, 'entry-point');
         $compression = $this->readParamComposerAsk($extraData, $input, $output, $baseDir, 'compression');
         $name        = $this->readParamComposerAskName($extraData, $input, $output);
@@ -124,7 +126,7 @@ CODE
         $includes    = $this->readParamComposerAsk($extraData, $input, $output, $baseDir, 'include');
 
         $output->writeln('');
-        new PharBuilder($output, $composerFile, $outputDir, $name, $stubFile, $compression, $includes);
+        new PharBuilder($output, $composerFile, $outputDir, $name, $stubFile, $compression, $includes, $keepDev);
         $output->writeln('');
     }
 
