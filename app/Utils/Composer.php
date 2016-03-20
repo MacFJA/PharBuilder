@@ -105,6 +105,8 @@ class Composer
      * Get the list of package name that are only use in require-dev
      *
      * @return array
+     *
+     * @throws \RuntimeException
      */
     public function getDevOnlyPackageName()
     {
@@ -174,7 +176,7 @@ class Composer
      *
      * @return void
      *
-     * @throws \Exception
+     * @throws \RuntimeException
      */
     public function removeFilesAutoloadFor($packageNames)
     {

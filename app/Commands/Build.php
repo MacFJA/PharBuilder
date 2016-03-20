@@ -51,31 +51,30 @@ class Build extends Base
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         if (!$input->isInteractive()) {
-            $this->throwErrorForNoInteractiveMode($output);
+            $this->throwErrorForNoInteractiveMode();
         }
+
+        $this->ioStyle->title('Configuring your Phar application...');
 
         // -- Ask for composer.json file (the base file of the project)
         $composerFile = $this->askComposer($input, $output);
 
         // -- Ask for the dev
-        $keepDev = $this->askIncludeDev($input, $output);
+        $keepDev = $this->askIncludeDev();
 
         // -- Ask for the stub <=> the entry point of the application
         $stubFile = $this->askEntryPoint($input, $output, dirname($composerFile));
 
         // -- Ask for the compression
-        $compression = $this->askCompression($input, $output);
+        $compression = $this->askCompression();
 
         // -- Ask for the name of the phar file
-        $name = $this->askPharName($input, $output);
+        $name = $this->askPharName();
 
         // -- Ask for the output folder
         $outputDir = $this->askOutputDir($input, $output, dirname($composerFile));
 
         // -- Build the Phar
-
-        $output->writeln('');
-        new PharBuilder($output, $composerFile, $outputDir, $name, $stubFile, $compression, array(), $keepDev);
-        $output->writeln('');
+        new PharBuilder($this->ioStyle, $composerFile, $outputDir, $name, $stubFile, $compression, array(), $keepDev);
     }
 }

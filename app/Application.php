@@ -8,9 +8,9 @@ use MacFJA\PharBuilder\Commands\Package;
 use MacFJA\Symfony\Console\Filechooser\FilechooserHelper;
 use Symfony\Component\Console\Application as Base;
 use Symfony\Component\Console\Exception\LogicException;
-use Symfony\Component\Console\Formatter\OutputFormatterStyle;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Style\SymfonyStyle;
 
 /**
  * Class Application.
@@ -58,24 +58,21 @@ class Application extends Base
      * Check if the application can run properly in the current environment.
      * Exit code: `5`
      *
-     * @param OutputInterface $output The CLI output interface (display message)
+     * @param SymfonyStyle $ioStyle The Symfony Style Input/Output
      *
      * @return void
      *
      * @SuppressWarnings(PHPMD.ExitExpression, PHPMD.Superglobals) -- Normal/Wanted behavior
      */
-    public function checkSystem(OutputInterface $output)
+    public function checkSystem(SymfonyStyle $ioStyle)
     {
         $pharReadonly = ini_get('phar.readonly');
         if ($pharReadonly === '1') {
-            $this->renderException(
-                new \Exception(
-                    'The configuration of your PHP do not authorize PHAR creation. (see phar.readonly in you php.ini)' .
-                    PHP_EOL . ' ' . PHP_EOL . 'Alternatively you can run:' . PHP_EOL .
-                    'php -d phar.readonly=0 ' . implode(' ', $_SERVER['argv']) . '.'
-                ),
-                $output
-            );
+            $ioStyle->error(array(
+                'The configuration of your PHP do not authorize PHAR creation. (see phar.readonly in you php.ini)',
+                'Alternatively you can run:' . PHP_EOL .
+                'php -d phar.readonly=0 ' . implode(' ', $_SERVER['argv'])
+            ));
             exit(5);
         }
 
@@ -92,8 +89,14 @@ class Application extends Base
     protected function configureIO(InputInterface $input, OutputInterface $output)
     {
         parent::configureIO($input, $output);
-        $output->getFormatter()->setStyle('success', new OutputFormatterStyle('white', 'green'));
 
-        $this->checkSystem($output);
+        $ioStyle = new SymfonyStyle($input, $output);
+        foreach ($this->all() as $command) {
+            if ($command instanceof Commands\Base) {
+                $command->setIo($ioStyle);
+            }
+        }
+
+        $this->checkSystem($ioStyle);
     }
 }

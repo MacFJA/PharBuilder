@@ -5,7 +5,7 @@ namespace MacFJA\PharBuilder;
 
 use MacFJA\PharBuilder\Utils\Composer;
 use Rych\ByteSize\ByteSize;
-use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Finder\Finder;
 use webignition\ReadableDuration\ReadableDuration;
 
@@ -44,11 +44,11 @@ class PharBuilder
      */
     protected $alias;
     /**
-     * The CLI output interface (display message)
+     * The Symfony Style Input/Output
      *
-     * @var OutputInterface
+     * @var SymfonyStyle
      */
-    protected $output;
+    protected $ioStyle;
     /**
      * The compression type (see `$compressionList`)
      *
@@ -89,21 +89,22 @@ class PharBuilder
     /**
      * The class constructor
      *
-     * @param OutputInterface $output      The CLI output interface (display message)
-     * @param string          $composer    The path of the composer.json file
-     * @param string          $outputDir   The path to the directory where the phar will be created
-     * @param string          $pharName    The name of the phar
-     * @param string          $stubFile    The path of entry point of the application
-     * @param string          $compression The compression type of the Phar (no, none, gzip, bzip2)
-     * @param string[]        $includes    List of directories to include
-     * @param bool            $includeDev  Indicate if dev requirement must be include
+     * @param SymfonyStyle $ioStyle     The Symfony Style Input/Output
+     * @param string       $composer    The path of the composer.json file
+     * @param string       $outputDir   The path to the directory where the phar will be created
+     * @param string       $pharName    The name of the phar
+     * @param string       $stubFile    The path of entry point of the application
+     * @param string       $compression The compression type of the Phar (no, none, gzip, bzip2)
+     * @param string[]     $includes    List of directories to include
+     * @param bool         $includeDev  Indicate if dev requirement must be include
      *
      * @throws \BadMethodCallException
      * @throws \UnexpectedValueException
      * @throws \InvalidArgumentException
+     * @throws \RuntimeException
      */
     public function __construct(
-        OutputInterface $output,
+        SymfonyStyle $ioStyle,
         $composer,
         $outputDir,
         $pharName,
@@ -118,7 +119,7 @@ class PharBuilder
         $this->stubFile       = $stubFile;
         $this->alias          = $pharName;
         $this->composerReader = new Composer($composer);
-        $this->output         = $output;
+        $this->ioStyle        = $ioStyle;
         $this->compression    = array_key_exists($compression, $this->compressionList) ?
             $this->compressionList[$compression] : \Phar::NONE;
         $this->includes       = $includes;
@@ -135,13 +136,17 @@ class PharBuilder
      * @throws \BadMethodCallException
      * @throws \UnexpectedValueException
      * @throws \InvalidArgumentException
+     * @throws \RuntimeException
      */
     protected function buildPhar()
     {
         $startTime = time();
-        $this->output->write('Reading composer.json...', false);
+
+        $this->ioStyle->title('Creating your Phar application...');
+
+        $this->ioStyle->section('Reading composer.json...');
         $composerInfo = $this->readComposerAutoload();
-        $this->output->writeln(' <info>OK</info>');
+        $this->ioStyle->success('composer.json analysed');
 
         // Unlink, otherwise we just add things to the already existing phar
         if (file_exists($this->pharName)) {
@@ -165,7 +170,8 @@ class PharBuilder
         );
 
         //Adding files to the archive
-        $this->output->writeln('Adding files to Phar...');
+        $this->ioStyle->section('Adding files to Phar...');
+
         // Add all project file (based on composer declaration)
         foreach ($composerInfo['dirs'] as $dir) {
             $this->addDir($dir);
@@ -184,26 +190,18 @@ class PharBuilder
         $this->addFile('composer.lock');
         $this->addStub();
 
-        $this->output->writeln("\r\033[2K" . '   <info>All files added</info>');
+        $this->ioStyle->success('All files added');
 
         $this->phar->stopBuffering();
 
         $endTime = time();
         $size    = new ByteSize();
-        $this->output->writeln(
-            'File size: <comment>' . $size->formatBinary(filesize($this->pharName)) . '</comment>'
-        );
-        $this->output->writeln(
-            'Process duration: <comment>' . $this->buildDuration($startTime, $endTime) . '</comment>' . PHP_EOL
-        );
 
-        $successMessage = 'Phar creation successful';
-        $this->output->writeln('<success>  ' . str_repeat(' ', strlen($successMessage)) . '  </success>');
-        $this->output->writeln(
-            '<success>  [Success]' . str_repeat(' ', strlen($successMessage) - 9) . '  </success>'
-        ); // -9 for the "[Success]" text
-        $this->output->writeln('<success>  ' . $successMessage . '  </success>');
-        $this->output->writeln('<success>  ' . str_repeat(' ', strlen($successMessage)) . '  </success>');
+        $this->ioStyle->success(array(
+            'Phar creation successful',
+            'File size: ' . $size->formatBinary(filesize($this->pharName)) . PHP_EOL .
+            'Process duration: ' . $this->buildDuration($startTime, $endTime)
+        ));
     }
 
     /**
@@ -276,7 +274,7 @@ class PharBuilder
      */
     protected function addStub()
     {
-        $this->output->write("\r\033[2K" . ' > ' . $this->stubFile);
+        $this->ioStyle->write("\r\033[2K" . ' > ' . $this->stubFile);
 
         $stub = file_get_contents($this->stubFile);
 
@@ -314,7 +312,7 @@ class PharBuilder
      */
     protected function addFile($filePath)
     {
-        $this->output->write("\r\033[2K" . ' > ' . $filePath);
+        $this->ioStyle->write("\r\033[2K" . ' > ' . $filePath);
 
         //Add the file
         $this->phar->addFile($filePath);
@@ -343,7 +341,7 @@ class PharBuilder
         }
         // Some frequent text based file extension that can be compressed in a good rate
         $toCompressExtension = array(
-            '.php', '.txt', '.md', '.xml', '.js', '.css', '.less', '.scss', '.json', '.html', '.rst'
+            '.php', '.txt', '.md', '.xml', '.js', '.css', '.less', '.scss', '.json', '.html', '.rst', '.svg'
         );
         $canCompress         = false;
         foreach ($toCompressExtension as $extension) {
@@ -355,9 +353,9 @@ class PharBuilder
             return;
         }
 
-        $this->output->write('...');
+        $this->ioStyle->write('...');
         $this->phar[$file]->compress($this->compression);
-        $this->output->write(' <info>compressed</info>');
+        $this->ioStyle->write(' <info>compressed</info>');
     }
 
     /**
@@ -370,6 +368,8 @@ class PharBuilder
      *   - ["exclude"]: List package name to exclude
      *
      * @return array list of relative path
+     *
+     * @throws \RuntimeException
      */
     protected function readComposerAutoload()
     {

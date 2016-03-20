@@ -7,13 +7,9 @@ use MacFJA\Symfony\Console\Filechooser\FilechooserHelper;
 use MacFJA\Symfony\Console\Filechooser\FileFilter;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Exception\InvalidArgumentException;
-use Symfony\Component\Console\Exception\RuntimeException;
-use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Question\ChoiceQuestion;
-use Symfony\Component\Console\Question\ConfirmationQuestion;
-use Symfony\Component\Console\Question\Question;
+use Symfony\Component\Console\Style\SymfonyStyle;
 
 /**
  * Class Base.
@@ -25,6 +21,24 @@ use Symfony\Component\Console\Question\Question;
  */
 abstract class Base extends Command
 {
+    /**
+     * The Symfony Style Input/Output
+     *
+     * @var SymfonyStyle
+     */
+    protected $ioStyle;
+
+    /**
+     * Set the Symfony Inout/Output style
+     *
+     * @param SymfonyStyle $ioStyle The Symfony Style Input/Output
+     *
+     * @return void
+     */
+    public function setIo($ioStyle)
+    {
+        $this->ioStyle = $ioStyle;
+    }
     /**
      * Get the function name for ask or validate action for a specific data
      *
@@ -68,7 +82,7 @@ abstract class Base extends Command
         );
         $composerFile   = $filechooser->ask($input, $output, $composerFilter);
 
-        $this->validateComposer($composerFile, $output);
+        $this->validateComposer($composerFile);
 
         return realpath($composerFile);
     }
@@ -77,24 +91,20 @@ abstract class Base extends Command
      * Validate if the value is a valid composer.json file path.
      * Exit code: `1`
      *
-     * @param string          $value  A path to a composer file
-     * @param OutputInterface $output The CLI output interface (display message)
+     * @param string $value A path to a composer file
      *
      * @return string The validated path to composer.json
      *
      * @SuppressWarnings(PHPMD.ExitExpression) -- Normal/Wanted behavior
      */
-    protected function validateComposer($value, OutputInterface $output)
+    protected function validateComposer($value)
     {
         if (!file_exists($value) || !is_file($value) || 'composer.json' !== basename($value)) {
-            $this->getApplication()->renderException(
-                new \InvalidArgumentException(
-                    'The path provided is not a valid <option=bold>composer.json</option=bold> file,' . PHP_EOL .
-                    'or the current directory does not contain a <option=bold>composer.json</option=bold> file.' .
-                    PHP_EOL . '  Path: ' . $value
-                ),
-                $output
-            );
+            $this->ioStyle->error(array(
+                'The path provided is not a valid <option=bold>composer.json</option=bold> file,' . PHP_EOL .
+                'or the current directory does not contain a <option=bold>composer.json</option=bold> file.',
+                'Path: ' . $value
+            ));
             exit(1);
         }
         return $value;
@@ -128,7 +138,7 @@ abstract class Base extends Command
         );
         $stubFile   = $filechooser->ask($input, $output, $stubFilter);
 
-        $this->validateEntryPoint($stubFile, $output);
+        $this->validateEntryPoint($stubFile);
 
         return $stubFile;
     }
@@ -137,21 +147,17 @@ abstract class Base extends Command
      * Validate if the value is a valid file path.
      * Exit code: `2`
      *
-     * @param string          $value  A path to a file
-     * @param OutputInterface $output The CLI output interface (display message)
+     * @param string $value A path to a file
      *
      * @return string The validated path to the application entry point
      *
      * @SuppressWarnings(PHPMD.ExitExpression) -- Normal/Wanted behavior
      */
-    protected function validateEntryPoint($value, OutputInterface $output)
+    protected function validateEntryPoint($value)
     {
         if (!file_exists($value) || !is_file($value)) {
-            $this->getApplication()->renderException(
-                new \InvalidArgumentException(
-                    'The path provided for the entry point is not a valid file' . PHP_EOL . '  Path: ' . $value
-                ),
-                $output
+            $this->ioStyle->error(
+                array('The path provided for the entry point is not a valid file', 'Path: ' . $value)
             );
             exit(2);
         }
@@ -161,29 +167,17 @@ abstract class Base extends Command
     /**
      * Prompt to the user the compression option (default to None)
      *
-     * @param InputInterface  $input  The CLI input interface (reading user input)
-     * @param OutputInterface $output The CLI output interface (display message)
-     *
      * @return string The compression of the Phar
-     *
-     * @throws InvalidArgumentException
-     * @throws RuntimeException
      */
-    protected function askCompression(InputInterface $input, OutputInterface $output)
+    protected function askCompression()
     {
-        /**
-         * The helper for asking data from the CLI
-         *
-         * @var QuestionHelper $questionHelper
-         */
-        $questionHelper = $this->getApplication()->getHelperSet()->get('question');
+        $choice = $this->ioStyle->choice('Do you want to compress the Phar?', array(
+            'No',
+            'Yes in GZip',
+            'Yes in BZip2'
+        ), 'No');
 
-        $compressChoice = new ChoiceQuestion('Do you want to compress the Phar? [<fg=blue>0</fg=blue>]', array(
-            0 => 'No',
-            1 => 'Yes in GZip',
-            2 => 'Yes in BZip2'
-        ), 0);
-        switch ($questionHelper->ask($input, $output, $compressChoice)) {
+        switch ($choice) {
             case 'No':
                 return 'No';
             case 'Yes in GZip':
@@ -199,14 +193,11 @@ abstract class Base extends Command
      * Validate if the value is a valid compression.
      * Do nothing because compression is valid in \MacFJA\PharBuilder\PharBuilder class
      *
-     * @param string          $value  A compression format
-     * @param OutputInterface $output The CLI output interface (display message)
+     * @param string $value A compression format
      *
      * @return string The (not really) validated compression
-     *
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter) -- Do nothing function
      */
-    protected function validateCompression($value, OutputInterface $output)
+    protected function validateCompression($value)
     {
         // Do nothing
         return $value;
@@ -215,48 +206,30 @@ abstract class Base extends Command
     /**
      * Prompt to the user the file name of the Phar (default to "app.phar")
      *
-     * @param InputInterface  $input  The CLI input interface (reading user input)
-     * @param OutputInterface $output The CLI output interface (display message)
-     *
      * @return string The name of the Phar file
-     *
-     * @throws RuntimeException
-     * @throws InvalidArgumentException
      */
-    protected function askPharName(InputInterface $input, OutputInterface $output)
+    protected function askPharName()
     {
-        /**
-         * The helper for asking data from the CLI
-         *
-         * @var QuestionHelper $questionHelper
-         */
-        $questionHelper = $this->getApplication()->getHelperSet()->get('question');
-
-        $nameQuestion = new Question('What is the name of the phar? [<fg=blue>app.phar</fg=blue>] ', 'app.phar');
-
-        return $questionHelper->ask($input, $output, $nameQuestion);
+        return $this->ioStyle->ask('What is the name of the phar?', 'app.phar');
     }
 
     /**
      * Validate if the value is a valid filename.
      * Exit code: `4`
      *
-     * @param string          $value  A filename
-     * @param OutputInterface $output The CLI output interface (display message)
+     * @param string $value A filename
      *
      * @return string A validated filename
      *
      * @SuppressWarnings(PHPMD.ExitExpression) -- Normal/Wanted behavior
      */
-    protected function validatePharName($value, OutputInterface $output)
+    protected function validatePharName($value)
     {
         if (strpos($value, DIRECTORY_SEPARATOR) !== false) {
-            $this->getApplication()->renderException(
-                new \InvalidArgumentException(
-                    'The name for the Phar is not a valid filename' . PHP_EOL . '  Name: ' . $value
-                ),
-                $output
-            );
+            $this->ioStyle->error(array(
+                'The name for the Phar is not a valid filename',
+                'Name: ' . $value
+            ));
             exit(4);
         }
         return $value;
@@ -290,7 +263,7 @@ abstract class Base extends Command
         $outputFilter->directories();
         $outputDir = $filechooser->ask($input, $output, $outputFilter);
 
-        $this->validateOutputDir($outputDir, $output);
+        $this->validateOutputDir($outputDir);
 
         return $outputDir;
     }
@@ -299,37 +272,33 @@ abstract class Base extends Command
      * Validate if the value is a valid output directory.
      * Exit code: `3`
      *
-     * @param string          $value  A path to a directory
-     * @param OutputInterface $output The CLI output interface (display message)
+     * @param string $value A path to a directory
      *
      * @return string The validated output directory path
      *
      * @SuppressWarnings(PHPMD.ExitExpression) -- Normal/Wanted behavior
      */
-    protected function validateOutputDir($value, OutputInterface $output)
+    protected function validateOutputDir($value)
     {
         if (is_file($value)) {
-            $this->getApplication()->renderException(
-                new \InvalidArgumentException(
-                    'The path provided for the output directory is not a valid directory' . PHP_EOL .
-                    '  Path: ' . $value
-                ),
-                $output
-            );
+            $this->ioStyle->error(array(
+                'The path provided for the output directory is not a valid directory',
+                'Path: ' . $value
+            ));
             exit(3);
         }
         if (!file_exists($value) && !mkdir($value, 0755, true)) {
-            $this->getApplication()->renderException(
-                new \InvalidArgumentException('Unable to create the output directory.' . PHP_EOL . '  Path: ' . $value),
-                $output
-            );
+            $this->ioStyle->error(array(
+                'Unable to create the output directory.',
+                'Path: ' . $value
+            ));
             exit(3);
         }
         if (!is_writable($value)) {
-            $this->getApplication()->renderException(
-                new \InvalidArgumentException('The output directory is not writable.' . PHP_EOL . '  Path: ' . $value),
-                $output
-            );
+            $this->ioStyle->error(array(
+                'The output directory is not writable.',
+                'Path: ' . $value
+            ));
             exit(3);
         }
         return $value;
@@ -338,36 +307,22 @@ abstract class Base extends Command
     /**
      * Prompt to the user the compression option (default to None)
      *
-     * @param InputInterface  $input  The CLI input interface (reading user input)
-     * @param OutputInterface $output The CLI output interface (display message)
-     *
      * @return string The compression of the Phar
      */
-    protected function askIncludeDev(InputInterface $input, OutputInterface $output)
+    protected function askIncludeDev()
     {
-        /**
-         * The helper for asking data from the CLI
-         *
-         * @var QuestionHelper $questionHelper
-         */
-        $questionHelper = $this->getApplication()->getHelperSet()->get('question');
-
-        $yesNo = new ConfirmationQuestion('Do you want to include dev? [<fg=blue>N</fg=blue>] ', false);
-        return $questionHelper->ask($input, $output, $yesNo);
+        return $this->ioStyle->confirm('Do you want to include dev?', false);
     }
 
     /**
      * Validate if the value is a valid flag for including dev
      * Do nothing because a flag as only 2 possible value which are, by definition, valid
      *
-     * @param bool            $value  The flag about including dev code and packages
-     * @param OutputInterface $output The CLI output interface (display message)
+     * @param bool $value The flag about including dev code and packages
      *
      * @return bool The (not really) validated flag
-     *
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter) -- Do nothing function
      */
-    protected function validateIncludeDev($value, OutputInterface $output)
+    protected function validateIncludeDev($value)
     {
         // Do nothing
         return $value;
@@ -384,9 +339,9 @@ abstract class Base extends Command
     {
         $result = '  │<comment>  ' . str_replace(
             PHP_EOL,
-            '</comment>' . PHP_EOL . '  │<comment>  ',
+            '</>' . PHP_EOL . '  │<comment>  ',
             $code
-        ) . '</comment>';
+        ) . '</>';
 
         return '  ┌' . PHP_EOL . $result . PHP_EOL . '  └';
     }
@@ -395,21 +350,16 @@ abstract class Base extends Command
      * Display an error that indicate that the application is in a no interactive mode and require an input.
      * Exit code: `6`
      *
-     * @param OutputInterface $output The CLI output interface (display message)
-     *
      * @return void
      *
      * @SuppressWarnings(PHPMD.ExitExpression) -- Normal/Wanted behavior
      */
-    protected function throwErrorForNoInteractiveMode(OutputInterface $output)
+    protected function throwErrorForNoInteractiveMode()
     {
-        $this->getApplication()->renderException(
-            new \InvalidArgumentException(
-                //@codingStandardsIgnoreLine
-                'The terminal set the application in a no-interactive mode. ' .
-                'therefor this command cannot be used as its require input'
-            ),
-            $output
+        $this->ioStyle->error(
+            //@codingStandardsIgnoreLine
+            'The terminal set the application in a no-interactive mode. ' .
+            'therefor this command cannot be used as its require input'
         );
         exit(6);
     }
