@@ -244,9 +244,23 @@ abstract class Base extends Command
      */
     protected function validateOutputDir($value, OutputInterface $output)
     {
-        if (!file_exists($value) || !is_dir($value)) {
+        if (is_file($value)) {
             $this->getApplication()->renderException(
                 new \InvalidArgumentException('The path provided for the output directory is not a valid directory' . PHP_EOL . '  Path: ' . $value),
+                $output
+            );
+            exit(3);
+        }
+        if (!file_exists($value) && !mkdir($value, 0755, true)) {
+            $this->getApplication()->renderException(
+                new \InvalidArgumentException('Unable to create the output directory.' . PHP_EOL . '  Path: ' . $value),
+                $output
+            );
+            exit(3);
+        }
+        if (!is_writable($value)) {
+            $this->getApplication()->renderException(
+                new \InvalidArgumentException('The output directory is not writable.' . PHP_EOL . '  Path: ' . $value),
                 $output
             );
             exit(3);
