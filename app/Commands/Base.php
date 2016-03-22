@@ -356,13 +356,13 @@ abstract class Base extends Command
     }
 
     /**
-     * Validate if the value is a valid compression.
-     * Do nothing because compression is valid in \MacFJA\PharBuilder\PharBuilder class
+     * Validate if the value is a valid flag for including dev
+     * Do nothing because a flag as only 2 possible value which are, by definition, valid
      *
-     * @param string          $value  A compression format
+     * @param bool            $value  The flag about including dev code and packages
      * @param OutputInterface $output The CLI output interface (display message)
      *
-     * @return string The (not really) validated compression
+     * @return bool The (not really) validated flag
      *
      * @SuppressWarnings(PHPMD.UnusedFormalParameter) -- Do nothing function
      */

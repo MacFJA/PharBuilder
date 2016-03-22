@@ -118,7 +118,7 @@ CODE
 
         $this->readSpecialParams($input);
 
-        $keepDev     = $this->readParamComposerAsk($extraData, $input, $output, $baseDir, 'include-dev');
+        $keepDev     = $this->readParamComposerIncludeDev($extraData, $input, $output);
         $stubFile    = $this->readParamComposerAsk($extraData, $input, $output, $baseDir, 'entry-point');
         $compression = $this->readParamComposerAsk($extraData, $input, $output, $baseDir, 'compression');
         $name        = $this->readParamComposerAskName($extraData, $input, $output);
@@ -201,6 +201,28 @@ CODE
             }
         }
         return $this->validatePharName($input->getOption('name'), $output);
+    }
+
+    /**
+     * Read the CLI argument for the including dev code and dev packages,
+     * if not found read the Composer.json file.
+     *
+     * @param array           $composerData The composer.json extra data content
+     * @param InputInterface  $input        The CLI input interface (reading user input)
+     * @param OutputInterface $output       The CLI output interface (display message)
+     *
+     * @return bool The include-dev flag
+     */
+    private function readParamComposerIncludeDev($composerData, InputInterface $input, OutputInterface $output)
+    {
+        if ($input->getOption('include-dev') == null) {
+            if (array_key_exists('include-dev', $composerData)) {
+                $input->setOption('include-dev', $composerData['include-dev']);
+            } else {
+                $input->setOption('include-dev', false);
+            }
+        }
+        return $this->validateIncludeDev($input->getOption('include-dev'), $output);
     }
 
     /**
