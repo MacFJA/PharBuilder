@@ -69,7 +69,8 @@ class Package extends Base
         "name": "application.phar",
         "output-dir": "../",
         "entry-point": "./index.php",
-        "include": ["bin","js","css"]
+        "include": ["bin","js","css"],
+        "include-dev": false
     }
 }
 CODE
