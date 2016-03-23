@@ -133,6 +133,9 @@ class PharBuilder
         $dirsFiles = $this->readComposerAutoload();
         $this->output->writeln(' <info>OK</info>');
 
+        // Unlink, otherwise we just add things to the already existing phar
+        unlink($this->pharName);
+
         $this->phar = new \Phar(
             $this->pharName,
             \FilesystemIterator::CURRENT_AS_FILEINFO | \FilesystemIterator::KEY_AS_FILENAME,
