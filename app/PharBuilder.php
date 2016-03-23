@@ -134,7 +134,9 @@ class PharBuilder
         $this->output->writeln(' <info>OK</info>');
 
         // Unlink, otherwise we just add things to the already existing phar
-        unlink($this->pharName);
+        if (file_exists($this->pharName)) {
+            unlink($this->pharName);
+        }
 
         $this->phar = new \Phar(
             $this->pharName,
