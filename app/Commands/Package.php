@@ -35,6 +35,7 @@ class Package extends Base
     {
         $this->setName('package')
             ->addArgument('composer', InputArgument::REQUIRED, 'The path to the composer.json')
+            ->addOption('include-dev', '', InputOption::VALUE_NONE, 'Include development packages and path')
             ->addOption('entry-point', 'e', InputOption::VALUE_REQUIRED, 'Your application start file')
             ->addOption(
                 'compression',
@@ -68,7 +69,8 @@ class Package extends Base
         "name": "application.phar",
         "output-dir": "../",
         "entry-point": "./index.php",
-        "include": ["bin","js","css"]
+        "include": ["bin","js","css"],
+        "include-dev": false
     }
 }
 CODE
@@ -117,6 +119,7 @@ CODE
 
         $this->readSpecialParams($input);
 
+        $keepDev     = $this->readParamComposerIncludeDev($extraData, $input, $output);
         $stubFile    = $this->readParamComposerAsk($extraData, $input, $output, $baseDir, 'entry-point');
         $compression = $this->readParamComposerAsk($extraData, $input, $output, $baseDir, 'compression');
         $name        = $this->readParamComposerAskName($extraData, $input, $output);
@@ -124,7 +127,7 @@ CODE
         $includes    = $this->readParamComposerAsk($extraData, $input, $output, $baseDir, 'include');
 
         $output->writeln('');
-        new PharBuilder($output, $composerFile, $outputDir, $name, $stubFile, $compression, $includes);
+        new PharBuilder($output, $composerFile, $outputDir, $name, $stubFile, $compression, $includes, $keepDev);
         $output->writeln('');
     }
 
@@ -199,6 +202,28 @@ CODE
             }
         }
         return $this->validatePharName($input->getOption('name'), $output);
+    }
+
+    /**
+     * Read the CLI argument for the including dev code and dev packages,
+     * if not found read the Composer.json file.
+     *
+     * @param array           $composerData The composer.json extra data content
+     * @param InputInterface  $input        The CLI input interface (reading user input)
+     * @param OutputInterface $output       The CLI output interface (display message)
+     *
+     * @return bool The include-dev flag
+     */
+    private function readParamComposerIncludeDev($composerData, InputInterface $input, OutputInterface $output)
+    {
+        if ($input->getOption('include-dev') == null) {
+            if (array_key_exists('include-dev', $composerData)) {
+                $input->setOption('include-dev', $composerData['include-dev']);
+            } else {
+                $input->setOption('include-dev', false);
+            }
+        }
+        return $this->validateIncludeDev($input->getOption('include-dev'), $output);
     }
 
     /**

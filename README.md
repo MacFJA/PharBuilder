@@ -41,27 +41,28 @@ _Extract from the `vendor/bin/phar-builder help package` command_
 
 ```
 Usage:
- package [-e|--entry-point="..."] [--compression="..."] [-f|--no-compression] [-z|--gzip] [-b|--bzip2] [--name="..."] [-o|--output-dir="..."] [-i|--include="..."] composer
+  package [options] [--] <composer>
 
 Arguments:
- composer              The path to the composer.json
+  composer                       The path to the composer.json
 
 Options:
- --entry-point (-e)    Your application start file
- --compression         The compression of your Phar (possible values No, GZip, BZip2)
- --no-compression (-f) Do not compress the Phar
- --gzip (-z)           Set the compression of the Phar to GZip
- --bzip2 (-b)          Set the compression of the Phar to BZip2
- --name                The filename of the Phar archive
- --output-dir (-o)     The output directory of the Phar archive
- --include (-i)        List of directories to add in Phar (multiple values allowed)
- --help (-h)           Display this help message
- --quiet (-q)          Do not output any message
- --verbose (-v|vv|vvv) Increase the verbosity of messages: 1 for normal output, 2 for more verbose output and 3 for debug
- --version (-V)        Display this application version
- --ansi                Force ANSI output
- --no-ansi             Disable ANSI output
- --no-interaction (-n) Do not ask any interactive question
+      --include-dev              Include development packages and path
+  -e, --entry-point=ENTRY-POINT  Your application start file
+      --compression=COMPRESSION  The compression of your Phar (possible values No, GZip, BZip2)
+  -f, --no-compression           Do not compress the Phar
+  -z, --gzip                     Set the compression of the Phar to GZip
+  -b, --bzip2                    Set the compression of the Phar to BZip2
+      --name=NAME                The filename of the Phar archive
+  -o, --output-dir=OUTPUT-DIR    The output directory of the Phar archive
+  -i, --include=INCLUDE          List of directories to add in Phar (multiple values allowed)
+  -h, --help                     Display this help message
+  -q, --quiet                    Do not output any message
+  -V, --version                  Display this application version
+      --ansi                     Force ANSI output
+      --no-ansi                  Disable ANSI output
+  -n, --no-interaction           Do not ask any interactive question
+  -v|vv|vvv, --verbose           Increase the verbosity of messages: 1 for normal output, 2 for more verbose output and 3 for debug
 
 Help:
  Create a Phar file of a composer project.
@@ -77,7 +78,8 @@ Help:
    │          "name": "application.phar",
    │          "output-dir": "../",
    │          "entry-point": "./index.php",
-   │          "include": ["bin","js","css"]
+   │          "include": ["bin","js","css"],
+   │          "include-dev": false
    │      }
    │  }
    └

@@ -3,6 +3,7 @@
 
 namespace MacFJA\PharBuilder;
 
+use MacFJA\PharBuilder\Utils\Composer;
 use Rych\ByteSize\ByteSize;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Finder\Finder;
@@ -49,12 +50,6 @@ class PharBuilder
      */
     protected $output;
     /**
-     * The path of the composer.json file
-     *
-     * @var string
-     */
-    protected $composer;
-    /**
      * The compression type (see `$compressionList`)
      *
      * @var int
@@ -66,6 +61,18 @@ class PharBuilder
      * @var string[]
      */
     protected $includes = array();
+    /**
+     * Keep require-dev only package?
+     *
+     * @var bool
+     */
+    protected $keepDev = false;
+    /**
+     * The composer file reader
+     *
+     * @var Composer
+     */
+    protected $composerReader;
 
     /**
      * List of equivalence for compression
@@ -89,6 +96,7 @@ class PharBuilder
      * @param string          $stubFile    The path of entry point of the application
      * @param string          $compression The compression type of the Phar (no, none, gzip, bzip2)
      * @param string[]        $includes    List of directories to include
+     * @param bool            $includeDev  Indicate if dev requirement must be include
      *
      * @throws \BadMethodCallException
      * @throws \UnexpectedValueException
@@ -101,18 +109,20 @@ class PharBuilder
         $pharName,
         $stubFile,
         $compression,
-        $includes
+        $includes,
+        $includeDev
     ) {
         $compression = strtolower($compression);
 
-        $this->pharName    = rtrim($outputDir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $pharName;
-        $this->stubFile    = $stubFile;
-        $this->alias       = $pharName;
-        $this->composer    = $composer;
-        $this->output      = $output;
-        $this->compression = array_key_exists($compression, $this->compressionList) ?
+        $this->pharName       = rtrim($outputDir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $pharName;
+        $this->stubFile       = $stubFile;
+        $this->alias          = $pharName;
+        $this->composerReader = new Composer($composer);
+        $this->output         = $output;
+        $this->compression    = array_key_exists($compression, $this->compressionList) ?
             $this->compressionList[$compression] : \Phar::NONE;
-        $this->includes    = $includes;
+        $this->includes       = $includes;
+        $this->keepDev        = $includeDev;
         $this->buildPhar();
     }
 
@@ -130,7 +140,7 @@ class PharBuilder
     {
         $startTime = time();
         $this->output->write('Reading composer.json...', false);
-        $dirsFiles = $this->readComposerAutoload();
+        $composerInfo = $this->readComposerAutoload();
         $this->output->writeln(' <info>OK</info>');
 
         // Unlink, otherwise we just add things to the already existing phar
@@ -151,15 +161,15 @@ class PharBuilder
             '"; __HALT_COMPILER(); ?>'
         );
 
-        chdir(dirname($this->composer));
+        chdir(dirname($this->composerReader->getComposerJsonPath()));
 
         //Adding files to the archive
         $this->output->writeln('Adding files to Phar...');
         // Add all project file (based on composer declaration)
-        foreach ($dirsFiles['dirs'] as $dir) {
+        foreach ($composerInfo['dirs'] as $dir) {
             $this->addDir($dir);
         }
-        foreach ($dirsFiles['files'] as $file) {
+        foreach ($composerInfo['files'] as $file) {
             $this->addFile($file);
         }
         // Add included directories
@@ -167,7 +177,8 @@ class PharBuilder
             $this->addDir($dir);
         }
         // Add the composer vendor dir
-        $this->addDir('vendor');
+        $this->composerReader->removeFilesAutoloadFor($composerInfo['excludes']);
+        $this->addDir($composerInfo['vendor'], $composerInfo['excludes']);
         $this->addFile('composer.json');
         $this->addFile('composer.lock');
         $this->addStub($this->stubFile);
@@ -217,13 +228,19 @@ class PharBuilder
      * Add a directory in the Phar file
      *
      * @param string $directory The relative (to composer.json file) path of the directory
+     * @param array  $excludes  List of path to exclude
      *
      * @return void
      *
      * @throws \InvalidArgumentException
      */
-    protected function addDir($directory)
+    protected function addDir($directory, $excludes = array())
     {
+        foreach ($excludes as &$exclude) {
+            $exclude = str_replace(realpath($directory) . DIRECTORY_SEPARATOR, '', $exclude);
+            $exclude = rtrim($exclude, DIRECTORY_SEPARATOR);
+        }
+
         $directory = rtrim($directory, DIRECTORY_SEPARATOR);
         $files     = Finder::create()->files()
             ->ignoreVCS(true)//Remove VCS
@@ -239,6 +256,7 @@ class PharBuilder
             ->exclude('docs')//Remove documentation
             ->notPath('/.*phpunit\/.*/')//Remove Unit test
             ->notPath('/.*test(s)?\/.*/')//Remove Unit test
+            ->exclude($excludes)
             ->in($directory);
         foreach ($files as $file) {
             /**
@@ -327,32 +345,26 @@ class PharBuilder
     }
 
     /**
-     * Return the list of project directories
+     * Read composer's files
+     *
+     * The result array format is:
+     *   - ["dirs"]: array, List of directories to include (project source)
+     *   - ["files"]: array, List of files to include (project source)
+     *   - ["vendor"]: string, Path to the composer vendor directory
+     *   - ["exclude"]: List package name to exclude
      *
      * @return array list of relative path
      */
     protected function readComposerAutoload()
     {
-        $dirs  = array();
-        $files = array();
+        $paths = $this->composerReader->getSourcePaths($this->keepDev);
 
-        $composer  = json_decode(file_get_contents($this->composer), true);
-        $autoloads = $composer['autoload'];
-        foreach ($autoloads as $type => $autoload) {
-            if (in_array($type, array('psr-4', 'psr-0'), true)) {
-                foreach ($autoload as /*$namespace =>*/ $dir) {
-                    $dirs[] = $dir;
-                }
-            } elseif (in_array($type, array('files', 'classmap'), true)) {
-                foreach ($autoload as $item) {
-                    if (is_dir($item)) {
-                        $dirs[] = $item;
-                    } elseif (is_file($item)) {
-                        $files[] = $item;
-                    }
-                }
-            }
+        $paths['excludes'] = array();
+        $paths['vendor']   = $this->composerReader->getVendorDir();
+        if (!$this->keepDev) {
+            $paths['excludes'] = $this->composerReader->getDevOnlyPackageName();
         }
-        return array('dirs' => $dirs, 'files' => $files);
+
+        return $paths;
     }
 }

@@ -12,6 +12,7 @@ use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ChoiceQuestion;
+use Symfony\Component\Console\Question\ConfirmationQuestion;
 use Symfony\Component\Console\Question\Question;
 
 /**
@@ -330,6 +331,44 @@ abstract class Base extends Command
             );
             exit(3);
         }
+        return $value;
+    }
+
+    /**
+     * Prompt to the user the compression option (default to None)
+     *
+     * @param InputInterface  $input  The CLI input interface (reading user input)
+     * @param OutputInterface $output The CLI output interface (display message)
+     *
+     * @return string The compression of the Phar
+     */
+    protected function askIncludeDev(InputInterface $input, OutputInterface $output)
+    {
+        /**
+         * The helper for asking data from the CLI
+         *
+         * @var QuestionHelper $questionHelper
+         */
+        $questionHelper = $this->getApplication()->getHelperSet()->get('question');
+
+        $yesNo = new ConfirmationQuestion('Do you want to include dev? [<fg=blue>N</fg=blue>] ', false);
+        return $questionHelper->ask($input, $output, $yesNo);
+    }
+
+    /**
+     * Validate if the value is a valid flag for including dev
+     * Do nothing because a flag as only 2 possible value which are, by definition, valid
+     *
+     * @param bool            $value  The flag about including dev code and packages
+     * @param OutputInterface $output The CLI output interface (display message)
+     *
+     * @return bool The (not really) validated flag
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter) -- Do nothing function
+     */
+    protected function validateIncludeDev($value, OutputInterface $output)
+    {
+        // Do nothing
         return $value;
     }
 

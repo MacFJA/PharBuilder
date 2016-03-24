@@ -57,6 +57,9 @@ class Build extends Base
         // -- Ask for composer.json file (the base file of the project)
         $composerFile = $this->askComposer($input, $output);
 
+        // -- Ask for the dev
+        $keepDev = $this->askIncludeDev($input, $output);
+
         // -- Ask for the stub <=> the entry point of the application
         $stubFile = $this->askEntryPoint($input, $output, dirname($composerFile));
 
@@ -72,7 +75,7 @@ class Build extends Base
         // -- Build the Phar
 
         $output->writeln('');
-        new PharBuilder($output, $composerFile, $outputDir, $name, $stubFile, $compression, array());
+        new PharBuilder($output, $composerFile, $outputDir, $name, $stubFile, $compression, array(), $keepDev);
         $output->writeln('');
     }
 }
