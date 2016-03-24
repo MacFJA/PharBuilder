@@ -166,4 +166,36 @@ class Composer
 
         return $composer['config']['vendor-dir'];
     }
+
+    /**
+     * Remove packages files from the **files** autoloader
+     *
+     * @param string[] $packageNames List of the packages name
+     *
+     * @return void
+     *
+     * @throws \Exception
+     */
+    public function removeFilesAutoloadFor($packageNames)
+    {
+        if (0 === count($packageNames)) {
+            return;
+        }
+
+        $autoloadFile = $this->getVendorDir() . DIRECTORY_SEPARATOR .
+            'composer' . DIRECTORY_SEPARATOR . 'autoload_files.php';
+        $content      = file_get_contents($autoloadFile);
+
+        foreach ($packageNames as $name) {
+            // Search for "$vendor . '/PACKAGE_NAME/"
+            $pattern = '/^.+\$vendorDir\s*\.\s*\'\/%s\/.+$/mU';
+            $content = preg_replace(sprintf($pattern, preg_quote($name, '/')), '', $content);
+
+            if (null === $content) {
+                throw new \RuntimeException(sprintf('An error occur when removing "%s" from files autoloader', $name));
+            }
+        }
+
+        file_put_contents($autoloadFile, $content);
+    }
 }

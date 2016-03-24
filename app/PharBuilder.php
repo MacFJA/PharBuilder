@@ -172,6 +172,7 @@ class PharBuilder
             $this->addDir($dir);
         }
         // Add the composer vendor dir
+        $this->composerReader->removeFilesAutoloadFor($composerInfo['excludes']);
         $this->addDir($composerInfo['vendor'], $composerInfo['excludes']);
         $this->addFile('composer.json');
         $this->addFile('composer.lock');
