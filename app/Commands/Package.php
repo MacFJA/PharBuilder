@@ -34,7 +34,14 @@ class Package extends Base
     protected function configure()
     {
         $this->setName('package')
-            ->addArgument('composer', InputArgument::REQUIRED, 'The path to the composer.json')
+            ->addArgument(
+                'composer',
+                InputArgument::OPTIONAL,
+                //@codingStandardsIgnoreStart
+                'The path to the composer.json. If the argument is not provided, ' .
+                'it will look for a composer.json file in the current directory'
+                 //@codingStandardsIgnoreEnd
+            )
             ->addOption('include-dev', '', InputOption::VALUE_NONE, 'Include development packages and path')
             ->addOption('entry-point', 'e', InputOption::VALUE_REQUIRED, 'Your application start file')
             ->addOption(
@@ -97,6 +104,9 @@ CODE
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $composerFile = $input->getArgument('composer');
+        if (null === $composerFile) {
+            $composerFile = getcwd() . DIRECTORY_SEPARATOR . 'composer.json';
+        }
 
         $this->validateComposer($composerFile, $output);
 

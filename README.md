@@ -41,10 +41,10 @@ _Extract from the `vendor/bin/phar-builder help package` command_
 
 ```
 Usage:
-  package [options] [--] <composer>
+  package [options] [--] [<composer>]
 
 Arguments:
-  composer                       The path to the composer.json
+  composer                       The path to the composer.json. If the argument is not provided, it will look for a composer.json file in the current directory
 
 Options:
       --include-dev              Include development packages and path
