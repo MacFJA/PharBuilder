@@ -148,6 +148,8 @@ class PharBuilder
             unlink($this->pharName);
         }
 
+        chdir(dirname($this->composerReader->getComposerJsonPath()));
+
         $this->phar = new \Phar(
             $this->pharName,
             \FilesystemIterator::CURRENT_AS_FILEINFO | \FilesystemIterator::KEY_AS_FILENAME,
@@ -155,13 +157,12 @@ class PharBuilder
         );
         $this->phar->startBuffering();
 
+        $this->stubFile = $this->makePathRelative($this->stubFile);
         $this->phar->setStub(
             '#!/usr/bin/env php' . PHP_EOL .
             '<?php Phar::mapPhar(); include "phar://' . $this->alias . '/' . $this->stubFile .
             '"; __HALT_COMPILER(); ?>'
         );
-
-        chdir(dirname($this->composerReader->getComposerJsonPath()));
 
         //Adding files to the archive
         $this->output->writeln('Adding files to Phar...');
@@ -181,7 +182,7 @@ class PharBuilder
         $this->addDir($composerInfo['vendor'], $composerInfo['excludes']);
         $this->addFile('composer.json');
         $this->addFile('composer.lock');
-        $this->addStub($this->stubFile);
+        $this->addStub();
 
         $this->output->writeln("\r\033[2K" . '   <info>All files added</info>');
 
@@ -271,22 +272,37 @@ class PharBuilder
     /**
      * Add stubfile to the Phar and remove the shebang if present
      *
-     * @param string $filePath The path MUST be relative to the composer.json parent directory
-     *
      * @return void
      */
-    protected function addStub($filePath)
+    protected function addStub()
     {
-        $this->output->write("\r\033[2K" . ' > ' . $filePath);
+        $this->output->write("\r\033[2K" . ' > ' . $this->stubFile);
 
-        $stub = file_get_contents($filePath);
+        $stub = file_get_contents($this->stubFile);
 
         // Remove shebang if present
         $shebang = "~^#!/(.*)\n~";
         $stub    = preg_replace($shebang, '', $stub);
 
         $this->phar->addFromString($this->stubFile, $stub);
-        $this->compressFile($filePath);
+        $this->compressFile($this->stubFile);
+    }
+
+    /**
+     * Ensure that $path is a relative path
+     *
+     * @param string $path The path to test and correct
+     *
+     * @return string
+     */
+    protected function makePathRelative($path)
+    {
+        if (0 === strpos($path, getcwd())) {
+            $path = substr($path, strlen(getcwd()));
+            $path = ltrim($path, DIRECTORY_SEPARATOR);
+        }
+
+        return $path;
     }
 
     /**
