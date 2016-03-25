@@ -89,8 +89,9 @@ abstract class Base extends Command
         if (!file_exists($value) || !is_file($value) || 'composer.json' !== basename($value)) {
             $this->getApplication()->renderException(
                 new \InvalidArgumentException(
-                    'The path provided is not a valid <option=bold>composer.json</option=bold> file' . PHP_EOL .
-                    '  Path: ' . $value
+                    'The path provided is not a valid <option=bold>composer.json</option=bold> file,' . PHP_EOL .
+                    'or the current directory does not contain a <option=bold>composer.json</option=bold> file.' .
+                    PHP_EOL . '  Path: ' . $value
                 ),
                 $output
             );
