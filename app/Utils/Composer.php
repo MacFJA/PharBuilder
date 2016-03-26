@@ -200,4 +200,25 @@ class Composer
 
         file_put_contents($autoloadFile, $content);
     }
+
+    /**
+     * Get the phar-builder config data from the composer.json
+     *
+     * @return array
+     */
+    public function getComposerConfig()
+    {
+        /*
+         * Read the composer.json file.
+         * All information we need is store in it.
+         */
+        $parsed = json_decode(file_get_contents($this->composerJsonPath), true);
+        // check if our info is here
+        if (!array_key_exists('extra', $parsed)) {
+            $parsed['extra'] = array('phar-builder' => array());
+        } elseif (!array_key_exists('phar-builder', $parsed['extra'])) {
+            $parsed['extra']['phar-builder'] = array();
+        }
+        return $parsed['extra']['phar-builder'];
+    }
 }

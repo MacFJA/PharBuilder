@@ -3,8 +3,11 @@
 
 namespace MacFJA\PharBuilder;
 
+use League\Event\Emitter;
+use League\Event\EventInterface;
 use MacFJA\PharBuilder\Commands\Build;
 use MacFJA\PharBuilder\Commands\Package;
+use MacFJA\PharBuilder\Event\ApplicationListener;
 use MacFJA\Symfony\Console\Filechooser\FilechooserHelper;
 use Symfony\Component\Console\Application as Base;
 use Symfony\Component\Console\Exception\LogicException;
@@ -32,6 +35,28 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 class Application extends Base
 {
     /**
+     * The phar builder
+     *
+     * @var PharBuilder
+     */
+    protected $builder;
+    /**
+     * The events emitter
+     *
+     * @var Emitter
+     */
+    protected $emitter;
+
+    /**
+     * Get the application PHAR Builder
+     *
+     * @return PharBuilder
+     */
+    public function getBuilder()
+    {
+        return $this->builder;
+    }
+    /**
      * Init the application and create the main and default command
      *
      * @throws LogicException
@@ -39,6 +64,8 @@ class Application extends Base
     public function __construct()
     {
         parent::__construct('MacFJA PharBuilder', '@dev');
+
+        $this->emitter = new Emitter();
 
         $this->getHelperSet()->set(new FilechooserHelper());
 
@@ -52,6 +79,20 @@ class Application extends Base
          * So without argument, instead of the help command, the build command will be launch
          */
         $this->setDefaultCommand('build');
+
+        $this->emitter->addListener('*', new ApplicationListener());
+    }
+
+    /**
+     * Emit an event.
+     *
+     * @param EventInterface $event The event to send
+     *
+     * @return EventInterface
+     */
+    public function emit($event)
+    {
+        $this->emitter->emit($event);
     }
 
     /**
@@ -90,9 +131,10 @@ class Application extends Base
     {
         parent::configureIO($input, $output);
 
-        $ioStyle = new SymfonyStyle($input, $output);
+        $ioStyle       = new SymfonyStyle($input, $output);
+        $this->builder = new PharBuilder($ioStyle);
         foreach ($this->all() as $command) {
-            if ($command instanceof Commands\Base) {
+            if (method_exists($command, 'setIo')) {
                 $command->setIo($ioStyle);
             }
         }

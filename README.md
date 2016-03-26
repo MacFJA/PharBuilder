@@ -80,10 +80,19 @@ Help:
    │          "entry-point": "./index.php",
    │          "include": ["bin","js","css"],
    │          "include-dev": false
+   │          "events": {
+   │              "build.before" : "git describe --tags > bin/version.txt"
+   │              "build.after": [
+   │                  "rm bin/version.txt",
+   │                  "chmod +x ../application.phar"
+   │              ]
+   │          }
    │      }
    │  }
    └
 ```
+
+[More information about the Composer configuration](docs/ComposerExtra.md)
 
 ### Command `build`
 
@@ -91,7 +100,8 @@ The command `build` doesn't take any argument. All options will be ask through t
 
 ## Important
 
-The only way to add none source code and none vendors files is to use `include` option of the `package` command
+ - The only way to add none source code and none vendors files is to use `include` option of the `package` command.
+ - The only way to trigger script on build is to use `composer.json` configuration with `package` command.
 
 ## Similar projects
 

@@ -75,6 +75,19 @@ class Build extends Base
         $outputDir = $this->askOutputDir($input, $output, dirname($composerFile));
 
         // -- Build the Phar
-        new PharBuilder($this->ioStyle, $composerFile, $outputDir, $name, $stubFile, $compression, array(), $keepDev);
+        /**
+         * The application phar builder
+         *
+         * @var PharBuilder $builder
+         */
+        $builder = $this->getApplication()->getBuilder();
+        $builder->setComposer($composerFile);
+        $builder->setOutputDir($outputDir);
+        $builder->setPharName($name);
+        $builder->setStubFile($stubFile);
+        $builder->setCompression($compression);
+        $builder->setKeepDev($keepDev);
+
+        $builder->buildPhar();
     }
 }
