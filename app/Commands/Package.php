@@ -3,7 +3,6 @@
 
 namespace MacFJA\PharBuilder\Commands;
 
-use League\Event\Event;
 use MacFJA\PharBuilder\Application;
 use MacFJA\PharBuilder\Event\ComposerAwareEvent;
 use MacFJA\PharBuilder\Event\PharAwareEvent;
@@ -36,7 +35,7 @@ class Package extends Base
      */
     protected function configure()
     {
-        $resourcePath = __DIR__.DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'resource';
+        $resourcePath = __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'resource';
         $this->setName('package')
             ->addArgument(
                 'composer',
@@ -70,9 +69,9 @@ class Package extends Base
                 'List of directories to add in Phar'
             )
             ->setHelp(
-                file_get_contents($resourcePath . DIRECTORY_SEPARATOR .'package-help.txt') .
+                file_get_contents($resourcePath . DIRECTORY_SEPARATOR . 'package-help.txt') .
                 $this->codeHelpParagraph(
-                    file_get_contents($resourcePath . DIRECTORY_SEPARATOR .'package-extra-example.txt')
+                    file_get_contents($resourcePath . DIRECTORY_SEPARATOR . 'package-extra-example.txt')
                 )
             )
             ->setDescription('Create a Phar file from a composer.json');

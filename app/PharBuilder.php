@@ -30,7 +30,7 @@ class PharBuilder
      *
      * @var string
      */
-    protected $pharName;
+    protected $pharName = '';
     /**
      * The path of the entry point of the application
      *
@@ -127,8 +127,12 @@ class PharBuilder
      */
     public function setPharName($pharName)
     {
-        $this->alias    = $pharName;
-        $this->pharName = dirname($this->pharName) . DIRECTORY_SEPARATOR . $pharName;
+        if (empty($this->alias)) {
+            $this->pharName .= $pharName;
+        } else {
+            $this->pharName = dirname($this->pharName) . DIRECTORY_SEPARATOR . $pharName;
+        }
+        $this->alias = $pharName;
     }
 
     /**
@@ -247,11 +251,6 @@ class PharBuilder
      * The class constructor
      *
      * @param SymfonyStyle $ioStyle The Symfony Style Input/Output
-     *
-     * @throws \BadMethodCallException
-     * @throws \UnexpectedValueException
-     * @throws \InvalidArgumentException
-     * @throws \RuntimeException
      */
     public function __construct(SymfonyStyle $ioStyle)
     {

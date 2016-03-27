@@ -4,6 +4,8 @@ namespace MacFJA\PharBuilder\Event;
 
 use League\Event\AbstractListener;
 use League\Event\EventInterface;
+use Symfony\Component\Process\Exception\LogicException;
+use Symfony\Component\Process\Exception\RuntimeException;
 use Symfony\Component\Process\Process;
 
 /**
@@ -22,6 +24,9 @@ class ApplicationListener extends AbstractListener
      * @param EventInterface $event The event to handle
      *
      * @return void
+     *
+     * @throws RuntimeException
+     * @throws LogicException
      */
     public function handle(EventInterface $event)
     {
