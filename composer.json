@@ -39,6 +39,7 @@
     },
     "scripts": {
         "test": [
+            "php -l app/",
             "phpmd app/ text phpmd.xml.dist",
             "phpcpd app/",
             "phpcs"

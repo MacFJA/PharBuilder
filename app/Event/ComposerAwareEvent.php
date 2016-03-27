@@ -49,9 +49,14 @@ class ComposerAwareEvent extends Event
      * @param Composer $composer The PharBuilder
      *
      * @return static
+     *
+     * @throws \InvalidArgumentException
      */
-    public static function named($name, $composer)
+    public static function named($name, $composer = null)
     {
+        if (null === $composer) {
+            throw new \InvalidArgumentException('The parameter $composer MUST be defined');
+        }
         return new static($name, $composer);
     }
 }
