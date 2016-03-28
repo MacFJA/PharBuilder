@@ -100,6 +100,7 @@ CODE
      * @throws \BadMethodCallException
      * @throws \UnexpectedValueException
      * @throws \InvalidArgumentException
+     * @throws \RuntimeException
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
@@ -108,7 +109,7 @@ CODE
             $composerFile = getcwd() . DIRECTORY_SEPARATOR . 'composer.json';
         }
 
-        $this->validateComposer($composerFile, $output);
+        $this->validateComposer($composerFile);
 
         $composerFile = realpath($composerFile);
         $baseDir      = dirname($composerFile);
@@ -129,16 +130,14 @@ CODE
 
         $this->readSpecialParams($input);
 
-        $keepDev     = $this->readParamComposerIncludeDev($extraData, $input, $output);
+        $keepDev     = $this->readParamComposerIncludeDev($extraData, $input);
         $stubFile    = $this->readParamComposerAsk($extraData, $input, $output, $baseDir, 'entry-point');
         $compression = $this->readParamComposerAsk($extraData, $input, $output, $baseDir, 'compression');
-        $name        = $this->readParamComposerAskName($extraData, $input, $output);
+        $name        = $this->readParamComposerAskName($extraData, $input);
         $outputDir   = $this->readParamComposerAsk($extraData, $input, $output, $baseDir, 'output-dir');
         $includes    = $this->readParamComposerAsk($extraData, $input, $output, $baseDir, 'include');
 
-        $output->writeln('');
-        new PharBuilder($output, $composerFile, $outputDir, $name, $stubFile, $compression, $includes, $keepDev);
-        $output->writeln('');
+        new PharBuilder($this->ioStyle, $composerFile, $outputDir, $name, $stubFile, $compression, $includes, $keepDev);
     }
 
     /**
@@ -161,12 +160,12 @@ CODE
         $baseDir,
         $dataName
     ) {
-        if ($input->getOption($dataName) == null) {
+        if (null == $input->getOption($dataName)) {
             if (array_key_exists($dataName, $composerData)) {
                 $input->setOption($dataName, $composerData[$dataName]);
             } else {
                 if (!$input->isInteractive()) {
-                    $this->throwErrorForNoInteractiveMode($output);
+                    $this->throwErrorForNoInteractiveMode();
                 }
                 $input->setOption(
                     $dataName,
@@ -179,7 +178,7 @@ CODE
         }
         $data = call_user_func_array(
             array($this, $this->getFunctionName('validate', $dataName)),
-            array($input->getOption($dataName), $output)
+            array($input->getOption($dataName))
         );
 
         return $data;
@@ -190,50 +189,48 @@ CODE
      * if not found read the Composer.json file,
      * if not provided in composer.json, ask the user
      *
-     * @param array           $composerData The composer.json extra data content
-     * @param InputInterface  $input        The CLI input interface (reading user input)
-     * @param OutputInterface $output       The CLI output interface (display message)
+     * @param array          $composerData The composer.json extra data content
+     * @param InputInterface $input        The CLI input interface (reading user input)
      *
      * @return mixed The name of the phar
      *
      * @throws InvalidArgumentException
      * @throws RuntimeException
      */
-    private function readParamComposerAskName($composerData, InputInterface $input, OutputInterface $output)
+    private function readParamComposerAskName($composerData, InputInterface $input)
     {
-        if ($input->getOption('name') == null) {
+        if (null == $input->getOption('name')) {
             if (array_key_exists('name', $composerData)) {
                 $input->setOption('name', $composerData['name']);
             } else {
                 if (!$input->isInteractive()) {
-                    $this->throwErrorForNoInteractiveMode($output);
+                    $this->throwErrorForNoInteractiveMode();
                 }
-                $input->setOption('name', $this->askPharName($input, $output));
+                $input->setOption('name', $this->askPharName());
             }
         }
-        return $this->validatePharName($input->getOption('name'), $output);
+        return $this->validatePharName($input->getOption('name'));
     }
 
     /**
      * Read the CLI argument for the including dev code and dev packages,
      * if not found read the Composer.json file.
      *
-     * @param array           $composerData The composer.json extra data content
-     * @param InputInterface  $input        The CLI input interface (reading user input)
-     * @param OutputInterface $output       The CLI output interface (display message)
+     * @param array          $composerData The composer.json extra data content
+     * @param InputInterface $input        The CLI input interface (reading user input)
      *
      * @return bool The include-dev flag
      */
-    private function readParamComposerIncludeDev($composerData, InputInterface $input, OutputInterface $output)
+    private function readParamComposerIncludeDev($composerData, InputInterface $input)
     {
-        if ($input->getOption('include-dev') == null) {
+        if (null == $input->getOption('include-dev')) {
             if (array_key_exists('include-dev', $composerData)) {
                 $input->setOption('include-dev', $composerData['include-dev']);
             } else {
                 $input->setOption('include-dev', false);
             }
         }
-        return $this->validateIncludeDev($input->getOption('include-dev'), $output);
+        return $this->validateIncludeDev($input->getOption('include-dev'));
     }
 
     /**
@@ -276,19 +273,16 @@ CODE
     /**
      * Validate if the value are valid directories
      *
-     * @param array           $value  List of path to directories
-     * @param OutputInterface $output The CLI output interface (display message)
+     * @param array $value List of path to directories
      *
      * @return array List of directory path to include
      */
-    protected function validateInclude($value, OutputInterface $output)
+    protected function validateInclude($value)
     {
         foreach ($value as $key => $dir) {
             if (!file_exists($dir) || !is_dir($dir)) {
                 unset($value[$key]);
-                $output->writeln(
-                    '<error>Warning: the path "' . $dir . '" is not a valid directory. Path ignored.</error>'
-                );
+                $this->ioStyle->warning('Warning: the path "' . $dir . '" is not a valid directory. Path ignored.');
             }
         }
         return $value;
