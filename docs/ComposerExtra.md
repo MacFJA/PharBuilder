@@ -62,15 +62,33 @@ During the building process, some events are triggered. This allow you to do som
 The content of the events name can be a single command or a list of command.
 
 
-#### build.before
+#### command.build.start
 
-This event is triggered after reading all data for building the PHAR but before the actual build.
+This event is triggered in the command `build` after asking all questions to the user and before the actual build.
 
 _Working directory: `composer.json` directory_
 
-#### build.after
+#### command.build.after
 
-This event is triggered after the PHAR is created.
+This event is triggered in the command `build` after the PHAR is created.
+
+_Working directory: `composer.json` directory_
+
+#### command.package.start
+
+This event is triggered in the command `package` just after getting the `composer.json` file to use, but before reading any information for the building.
+
+_Working directory: `composer.json` directory_
+
+#### command.build.after
+
+This event is triggered in the command `package` after the PHAR is created.
+
+_Working directory: `composer.json` directory_
+
+#### unix.interrupt
+
+This event is triggered on **Unix** platform, with a compatible PHP when `Ctrl-C` is press during the PHAR building.
 
 _Working directory: `composer.json` directory_
 
@@ -93,8 +111,8 @@ Here a full-featured `phar-builder` configuration
         "include": ["bin","js","css"],
         "include-dev": false,
         "events": {
-            "build.before" : "git describe --tags > bin/version.txt"
-            "build.after": [
+            "command.package.before" : "git describe --tags > bin/version.txt"
+            "command.package.after": [
                 "rm bin/version.txt",
                 "chmod +x ../application.phar"
             ]

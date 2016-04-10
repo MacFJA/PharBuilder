@@ -39,10 +39,7 @@ class ApplicationListener extends AbstractListener
             return;
         }
 
-        $actions = $data['events'][$event->getName()];
-        if (!is_array($actions)) {
-            $actions = array($actions);
-        }
+        $actions = (array) $data['events'][$event->getName()];
 
         foreach ($actions as $action) {
             $process = new Process($action, dirname($event->getComposerReader()->getComposerJsonPath()));

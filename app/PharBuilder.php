@@ -267,16 +267,16 @@ class PharBuilder
     public function checkAllData()
     {
         $errors = array();
-        if (empty($this->getStubFile())) {
+        if ('' == $this->getStubFile()) {
             $errors[] = 'The stub file is missing.';
         }
-        if (empty($this->getOutputDir())) {
+        if ('' == $this->getOutputDir()) {
             $errors[] = 'The output directory is missing';
         }
-        if (empty($this->getPharName())) {
+        if ('' == $this->getPharName()) {
             $errors[] = 'The name of the phar is missing';
         }
-        if ($this->getComposerReader() === null || empty($this->composerReader->getComposerJsonPath())) {
+        if ($this->getComposerReader() === null || '' == $this->composerReader->getComposerJsonPath()) {
             $errors[] = 'The composer.json file is missing';
         }
 

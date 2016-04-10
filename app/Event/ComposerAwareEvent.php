@@ -24,7 +24,7 @@ class ComposerAwareEvent extends Event
      * Create a new event instance.
      *
      * @param string   $name     The new event name
-     * @param Composer $composer The PharBuilder
+     * @param Composer $composer The composer.json reader instance
      */
     public function __construct($name, $composer)
     {
@@ -46,7 +46,7 @@ class ComposerAwareEvent extends Event
      * Create a new event instance.
      *
      * @param string   $name     The new event name
-     * @param Composer $composer The PharBuilder
+     * @param Composer $composer The composer.json reader instance
      *
      * @return static
      *

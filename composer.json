@@ -8,12 +8,14 @@
         }
     ],
     "require": {
+        "php": ">=5.4.0",
         "symfony/console": "~2.7",
         "macfja/symfony-console-filechooser": "0.1",
         "rych/bytesize": "~1.0",
         "webignition/readable-duration": "^0.2",
         "league/event": "^2.1",
-        "symfony/process": "^2.7 || ^3.0"
+        "symfony/process": "^2.7 || ^3.0",
+        "neutron/signal-handler": "^1.0"
     },
     "autoload": {
         "psr-4": {"MacFJA\\PharBuilder\\": "app/"}
@@ -25,11 +27,7 @@
             "compression": "None",
             "name": "phar-builder.phar",
             "output-dir": "./",
-            "include": ["bin"],
-            "events": {
-                "build.before": ["touch before"],
-                "build.after": "rm before"
-            }
+            "include": ["bin"]
         }
     },
     "require-dev": {

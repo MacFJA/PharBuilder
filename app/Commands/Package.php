@@ -6,6 +6,7 @@ namespace MacFJA\PharBuilder\Commands;
 use MacFJA\PharBuilder\Application;
 use MacFJA\PharBuilder\Event\ComposerAwareEvent;
 use MacFJA\PharBuilder\Event\PharAwareEvent;
+use MacFJA\PharBuilder\Utils\Composer;
 use Symfony\Component\Console\Exception\InvalidArgumentException;
 use Symfony\Component\Console\Exception\RuntimeException;
 use Symfony\Component\Console\Input\InputArgument;
@@ -35,7 +36,7 @@ class Package extends Base
      */
     protected function configure()
     {
-        $resourcePath = __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'resource';
+        $resourcePath = implode(DIRECTORY_SEPARATOR, array(__DIR__, '..', 'resource'));
         $this->setName('package')
             ->addArgument(
                 'composer',
@@ -106,18 +107,21 @@ class Package extends Base
         $baseDir      = dirname($composerFile);
         chdir($baseDir);
 
+        /**
+         * The application
+         *
+         * @var Application $app
+         */
+        $app = $this->getApplication();
+        $app->getBuilder()->setComposer($composerFile);
+        $composerReader = $app->getBuilder()->getComposerReader();
+        $app->emit(new ComposerAwareEvent('command.package.start', $composerReader));
+
         /*
          * Read the composer.json file.
          * All information we need is store in it.
          */
-        $parsed = json_decode(file_get_contents($composerFile), true);
-        // check if our info is here
-        if (!array_key_exists('extra', $parsed)) {
-            $parsed['extra'] = array('phar-builder' => array());
-        } elseif (!array_key_exists('phar-builder', $parsed['extra'])) {
-            $parsed['extra']['phar-builder'] = array();
-        }
-        $extraData = $parsed['extra']['phar-builder'];
+        $extraData = $composerReader->getComposerConfig();
 
         $this->readSpecialParams($input);
 
@@ -128,12 +132,6 @@ class Package extends Base
         $outputDir   = $this->readParamComposerAsk($extraData, $input, $output, $baseDir, 'output-dir');
         $includes    = $this->readParamComposerAsk($extraData, $input, $output, $baseDir, 'include');
 
-        /**
-         * The application
-         *
-         * @var Application $app
-         */
-        $app     = $this->getApplication();
         $builder = $app->getBuilder();
         $builder->setComposer($composerFile);
         $builder->setOutputDir($outputDir);
@@ -143,11 +141,9 @@ class Package extends Base
         $builder->setIncludes($includes);
         $builder->setKeepDev($keepDev);
 
-        $app->emit(new PharAwareEvent('build.before', $builder));
-
         $builder->buildPhar();
 
-        $app->emit(new ComposerAwareEvent('build.after', $builder->getComposerReader()));
+        $app->emit(new ComposerAwareEvent('command.package.end', $builder->getComposerReader()));
     }
 
     /**

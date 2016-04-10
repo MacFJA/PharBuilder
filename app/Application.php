@@ -3,11 +3,10 @@
 
 namespace MacFJA\PharBuilder;
 
-use League\Event\Emitter;
 use League\Event\EventInterface;
 use MacFJA\PharBuilder\Commands\Build;
 use MacFJA\PharBuilder\Commands\Package;
-use MacFJA\PharBuilder\Event\ApplicationListener;
+use MacFJA\PharBuilder\Event\EventManager;
 use MacFJA\Symfony\Console\Filechooser\FilechooserHelper;
 use Symfony\Component\Console\Application as Base;
 use Symfony\Component\Console\Exception\LogicException;
@@ -41,11 +40,11 @@ class Application extends Base
      */
     protected $builder;
     /**
-     * The events emitter
+     * The application event manager
      *
-     * @var Emitter
+     * @var EventManager
      */
-    protected $emitter;
+    protected $eventManager;
 
     /**
      * Get the application PHAR Builder
@@ -65,7 +64,7 @@ class Application extends Base
     {
         parent::__construct('MacFJA PharBuilder', '@dev');
 
-        $this->emitter = new Emitter();
+        $this->eventManager = new EventManager($this);
 
         $this->getHelperSet()->set(new FilechooserHelper());
 
@@ -80,7 +79,7 @@ class Application extends Base
          */
         $this->setDefaultCommand('build');
 
-        $this->emitter->addListener('*', new ApplicationListener());
+        $this->eventManager->registerApplication();
     }
 
     /**
@@ -92,7 +91,7 @@ class Application extends Base
      */
     public function emit($event)
     {
-        $this->emitter->emit($event);
+        $this->eventManager->emit($event);
     }
 
     /**
@@ -116,7 +115,21 @@ class Application extends Base
             ));
             exit(5);
         }
-
+        switch ($this->eventManager->isSignalCompatible()) {
+            case EventManager::SIGNAL_COMP_COMPILATION:
+                $ioStyle->warning(
+                    array(
+                        'Your version on PHP is not compiled with the flag "--enable-pcntl".',
+                        'Unix interruption will not work'
+                    )
+                );
+                break;
+            case EventManager::SIGNAL_COMP_WINDOWS:
+                $ioStyle->warning(
+                    'Your system don\'t support Unix signal. Unix interruption will not work'
+                );
+                break;
+        }
     }
 
     /**
@@ -134,7 +147,7 @@ class Application extends Base
         $ioStyle       = new SymfonyStyle($input, $output);
         $this->builder = new PharBuilder($ioStyle);
         foreach ($this->all() as $command) {
-            if (method_exists($command, 'setIo')) {
+            if ($command instanceof Commands\Base) {
                 $command->setIo($ioStyle);
             }
         }
