@@ -49,7 +49,7 @@ class Composer
     /**
      * Get all paths (files and directories) of root package sources.
      *
-     * @param bool|false $includeDev Indicate if the dev files must be added.
+     * @param bool $includeDev Indicate if the dev files must be added.
      *
      * @return array
      *
@@ -122,6 +122,38 @@ class Composer
         }
 
         return $names;
+    }
+
+    /**
+     * Get all files required by require-dev that have to be stubbed.
+     *
+     * @param bool $includeDev Indicate if the dev files must be added.
+     *
+     * @return array
+     *
+     * @SuppressWarnings(PHPMD.BooleanArgumentFlag)
+     */
+    public function getStubFiles($includeDev = false)
+    {
+        if ($includeDev) {
+            return [];
+        }
+
+        $lock = $this->getLockFileContent();
+
+        $files = [];
+
+        if (isset($lock["packages-dev"])) {
+            foreach ($lock["packages-dev"] as $package) {
+                if (isset($package["autoload"]["files"])) {
+                    $files = array_merge($files, array_map(function ($file) use ($package) {
+                        return $package["name"] . "/" . $file;
+                    }, $package["autoload"]["files"]));
+                }
+            }
+        }
+
+        return $files;
     }
 
     /**

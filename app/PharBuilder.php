@@ -339,6 +339,9 @@ class PharBuilder
         foreach ($composerInfo['files'] as $file) {
             $this->addFile($file);
         }
+        foreach ($composerInfo['stubs'] as $file) {
+            $this->addFakeFile($file);
+        }
         // Add included directories
         foreach ($this->includes as $dir) {
             $this->addDir($dir);
@@ -481,6 +484,21 @@ class PharBuilder
     }
 
     /**
+     * Add a fake file (stub) to the Phar
+     *
+     * @param string $filePath The path MUST be relative to the composer.json parent directory
+     *
+     * @return void
+     */
+    protected function addFakeFile($filePath)
+    {
+        $this->ioStyle->write("\r\033[2K" . ' > ' . $filePath);
+
+        //Add the file
+        $this->phar->addFromString($filePath, "");
+    }
+
+    /**
      * Compress a given file (if compression is enabled and the file type is _compressible_)
      *
      * Note: The compression is made file by file because Phar have a bug with compressing the whole archive.
@@ -526,6 +544,7 @@ class PharBuilder
      *   - ["files"]: array, List of files to include (project source)
      *   - ["vendor"]: string, Path to the composer vendor directory
      *   - ["exclude"]: List package name to exclude
+     *   - ["stubs"]: List of files that have to be stubbed
      *
      * @return array list of relative path
      *
@@ -537,9 +556,14 @@ class PharBuilder
 
         $paths['excludes'] = array();
         $paths['vendor']   = $this->composerReader->getVendorDir();
+
         if (!$this->keepDev) {
             $paths['excludes'] = $this->composerReader->getDevOnlyPackageName();
         }
+
+        $paths["stubs"] = array_map(function ($file) use ($paths) {
+            return $paths['vendor'] . "/" . $file;
+        }, $this->composerReader->getStubFiles());
 
         return $paths;
     }
