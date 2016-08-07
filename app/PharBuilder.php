@@ -30,7 +30,7 @@ class PharBuilder
      *
      * @var string
      */
-    protected $pharName;
+    protected $pharName = '';
     /**
      * The path of the entry point of the application
      *
@@ -54,7 +54,7 @@ class PharBuilder
      *
      * @var int
      */
-    protected $compression;
+    protected $compression = \Phar::NONE;
     /**
      * List of directories to include
      *
@@ -87,44 +87,202 @@ class PharBuilder
     );
 
     /**
+     * Get the name of the PHAR
+     *
+     * @return string
+     */
+    public function getPharName()
+    {
+        return $this->alias;
+    }
+
+    /**
+     * Get the directory path where the PHAR will be built
+     *
+     * @return string
+     */
+    public function getOutputDir()
+    {
+        return dirname($this->pharName);
+    }
+
+    /**
+     * Set the output directory path
+     *
+     * @param string $directory The output directory path
+     *
+     * @return void
+     */
+    public function setOutputDir($directory)
+    {
+        $this->pharName = rtrim($directory, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . basename($this->pharName);
+    }
+
+    /**
+     * Set the name of the PHAR
+     *
+     * @param string $pharName The name
+     *
+     * @return void
+     */
+    public function setPharName($pharName)
+    {
+        if (empty($this->alias)) {
+            $this->pharName .= $pharName;
+        } else {
+            $this->pharName = dirname($this->pharName) . DIRECTORY_SEPARATOR . $pharName;
+        }
+        $this->alias = $pharName;
+    }
+
+    /**
+     * Get the path of the stub (entry-point)
+     *
+     * @return string
+     */
+    public function getStubFile()
+    {
+        return $this->stubFile;
+    }
+
+    /**
+     * Set the path of the stub (entry-point)
+     *
+     * @param string $stubFile The path
+     *
+     * @return void
+     */
+    public function setStubFile($stubFile)
+    {
+        $this->stubFile = $stubFile;
+    }
+
+    /**
+     * Get the compression name
+     *
+     * @return string
+     */
+    public function getCompression()
+    {
+        return array_search($this->compression, $this->compressionList, true);
+    }
+
+    /**
+     * Set the compression
+     *
+     * @param string $compression The compression name
+     *
+     * @return void
+     */
+    public function setCompression($compression)
+    {
+        $compression       = strtolower($compression);
+        $this->compression = array_key_exists($compression, $this->compressionList) ?
+            $this->compressionList[$compression] : \Phar::NONE;
+    }
+
+    /**
+     * Get the list of path that will be included
+     *
+     * @return \string[]
+     */
+    public function getIncludes()
+    {
+        return $this->includes;
+    }
+
+    /**
+     * Set the list of path that will be included
+     *
+     * @param \string[] $includes The list of path
+     *
+     * @return void
+     */
+    public function setIncludes($includes)
+    {
+        $this->includes = $includes;
+    }
+
+    /**
+     * Indicate if dev source/package must be added to the PHAR
+     *
+     * @return boolean
+     */
+    public function isKeepDev()
+    {
+        return $this->keepDev;
+    }
+
+    /**
+     * Indicate if dev source/package must be added to the PHAR
+     *
+     * @param boolean $keepDev The value
+     *
+     * @return void
+     */
+    public function setKeepDev($keepDev)
+    {
+        $this->keepDev = $keepDev;
+    }
+
+    /**
+     * Set the path the composer.json file
+     *
+     * @param string $composer The path the composer.json file
+     *
+     * @return void
+     */
+    public function setComposer($composer)
+    {
+        $this->composerReader = new Composer($composer);
+    }
+
+    /**
+     * Get the composer reader object
+     *
+     * @return Composer
+     */
+    public function getComposerReader()
+    {
+        return $this->composerReader;
+    }
+
+    /**
      * The class constructor
      *
-     * @param SymfonyStyle $ioStyle     The Symfony Style Input/Output
-     * @param string       $composer    The path of the composer.json file
-     * @param string       $outputDir   The path to the directory where the phar will be created
-     * @param string       $pharName    The name of the phar
-     * @param string       $stubFile    The path of entry point of the application
-     * @param string       $compression The compression type of the Phar (no, none, gzip, bzip2)
-     * @param string[]     $includes    List of directories to include
-     * @param bool         $includeDev  Indicate if dev requirement must be include
-     *
-     * @throws \BadMethodCallException
-     * @throws \UnexpectedValueException
-     * @throws \InvalidArgumentException
-     * @throws \RuntimeException
+     * @param SymfonyStyle $ioStyle The Symfony Style Input/Output
      */
-    public function __construct(
-        SymfonyStyle $ioStyle,
-        $composer,
-        $outputDir,
-        $pharName,
-        $stubFile,
-        $compression,
-        $includes,
-        $includeDev
-    ) {
-        $compression = strtolower($compression);
+    public function __construct(SymfonyStyle $ioStyle)
+    {
+        $this->ioStyle = $ioStyle;
+    }
 
-        $this->pharName       = rtrim($outputDir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $pharName;
-        $this->stubFile       = $stubFile;
-        $this->alias          = $pharName;
-        $this->composerReader = new Composer($composer);
-        $this->ioStyle        = $ioStyle;
-        $this->compression    = array_key_exists($compression, $this->compressionList) ?
-            $this->compressionList[$compression] : \Phar::NONE;
-        $this->includes       = $includes;
-        $this->keepDev        = $includeDev;
-        $this->buildPhar();
+    /**
+     * Check if all required data are provided
+     *
+     * @return void
+     *
+     * @throws \InvalidArgumentException
+     */
+    public function checkAllData()
+    {
+        $errors = array();
+        if ('' == $this->getStubFile()) {
+            $errors[] = 'The stub file is missing.';
+        }
+        if ('' == $this->getOutputDir()) {
+            $errors[] = 'The output directory is missing';
+        }
+        if ('' == $this->getPharName()) {
+            $errors[] = 'The name of the phar is missing';
+        }
+        if ($this->getComposerReader() === null || '' == $this->composerReader->getComposerJsonPath()) {
+            $errors[] = 'The composer.json file is missing';
+        }
+
+        if (count($errors) > 0) {
+            throw new \InvalidArgumentException(implode(PHP_EOL, $errors));
+        }
     }
 
     /**
@@ -138,8 +296,10 @@ class PharBuilder
      * @throws \InvalidArgumentException
      * @throws \RuntimeException
      */
-    protected function buildPhar()
+    public function buildPhar()
     {
+        $this->checkAllData();
+
         $startTime = time();
 
         $this->ioStyle->title('Creating your Phar application...');
@@ -178,6 +338,9 @@ class PharBuilder
         }
         foreach ($composerInfo['files'] as $file) {
             $this->addFile($file);
+        }
+        foreach ($composerInfo['stubs'] as $file) {
+            $this->addFakeFile($file);
         }
         // Add included directories
         foreach ($this->includes as $dir) {
@@ -321,6 +484,21 @@ class PharBuilder
     }
 
     /**
+     * Add a fake file (stub) to the Phar
+     *
+     * @param string $filePath The path MUST be relative to the composer.json parent directory
+     *
+     * @return void
+     */
+    protected function addFakeFile($filePath)
+    {
+        $this->ioStyle->write("\r\033[2K" . ' > ' . $filePath);
+
+        //Add the file
+        $this->phar->addFromString($filePath, "");
+    }
+
+    /**
      * Compress a given file (if compression is enabled and the file type is _compressible_)
      *
      * Note: The compression is made file by file because Phar have a bug with compressing the whole archive.
@@ -366,6 +544,7 @@ class PharBuilder
      *   - ["files"]: array, List of files to include (project source)
      *   - ["vendor"]: string, Path to the composer vendor directory
      *   - ["exclude"]: List package name to exclude
+     *   - ["stubs"]: List of files that have to be stubbed
      *
      * @return array list of relative path
      *
@@ -377,9 +556,14 @@ class PharBuilder
 
         $paths['excludes'] = array();
         $paths['vendor']   = $this->composerReader->getVendorDir();
+
         if (!$this->keepDev) {
             $paths['excludes'] = $this->composerReader->getDevOnlyPackageName();
         }
+
+        $paths["stubs"] = array_map(function ($file) use ($paths) {
+            return $paths['vendor'] . "/" . $file;
+        }, $this->composerReader->getStubFiles());
 
         return $paths;
     }

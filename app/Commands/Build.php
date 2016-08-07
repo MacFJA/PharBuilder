@@ -3,6 +3,9 @@
 
 namespace MacFJA\PharBuilder\Commands;
 
+use MacFJA\PharBuilder\Application;
+use MacFJA\PharBuilder\Event\ComposerAwareEvent;
+use MacFJA\PharBuilder\Event\PharAwareEvent;
 use MacFJA\PharBuilder\PharBuilder;
 use Symfony\Component\Console\Exception\InvalidArgumentException;
 use Symfony\Component\Console\Exception\RuntimeException;
@@ -54,10 +57,18 @@ class Build extends Base
             $this->throwErrorForNoInteractiveMode();
         }
 
+        /**
+         * The application
+         *
+         * @var Application $app
+         */
+        $app = $this->getApplication();
+
         $this->ioStyle->title('Configuring your Phar application...');
 
         // -- Ask for composer.json file (the base file of the project)
         $composerFile = $this->askComposer($input, $output);
+        $app->getBuilder()->setComposer($composerFile);
 
         // -- Ask for the dev
         $keepDev = $this->askIncludeDev();
@@ -75,6 +86,17 @@ class Build extends Base
         $outputDir = $this->askOutputDir($input, $output, dirname($composerFile));
 
         // -- Build the Phar
-        new PharBuilder($this->ioStyle, $composerFile, $outputDir, $name, $stubFile, $compression, array(), $keepDev);
+        $builder = $app->getBuilder();
+        $builder->setOutputDir($outputDir);
+        $builder->setPharName($name);
+        $builder->setStubFile($stubFile);
+        $builder->setCompression($compression);
+        $builder->setKeepDev($keepDev);
+
+        $app->emit(new PharAwareEvent('command.build.start', $builder));
+
+        $builder->buildPhar();
+
+        $app->emit(new ComposerAwareEvent('command.build.end', $builder->getComposerReader()));
     }
 }

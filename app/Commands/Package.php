@@ -3,7 +3,10 @@
 
 namespace MacFJA\PharBuilder\Commands;
 
-use MacFJA\PharBuilder\PharBuilder;
+use MacFJA\PharBuilder\Application;
+use MacFJA\PharBuilder\Event\ComposerAwareEvent;
+use MacFJA\PharBuilder\Event\PharAwareEvent;
+use MacFJA\PharBuilder\Utils\Composer;
 use Symfony\Component\Console\Exception\InvalidArgumentException;
 use Symfony\Component\Console\Exception\RuntimeException;
 use Symfony\Component\Console\Input\InputArgument;
@@ -33,6 +36,7 @@ class Package extends Base
      */
     protected function configure()
     {
+        $resourcePath = implode(DIRECTORY_SEPARATOR, array(__DIR__, '..', 'resource'));
         $this->setName('package')
             ->addArgument(
                 'composer',
@@ -66,21 +70,9 @@ class Package extends Base
                 'List of directories to add in Phar'
             )
             ->setHelp(
-                file_get_contents(__DIR__.DIRECTORY_SEPARATOR.'package-help.txt') .
+                file_get_contents($resourcePath . DIRECTORY_SEPARATOR . 'package-help.txt') .
                 $this->codeHelpParagraph(
-                    <<< CODE
-<info>... The content of your composer.json file</info>
-"extra": {
-    "phar-builder": {
-        "compression": "GZip",
-        "name": "application.phar",
-        "output-dir": "../",
-        "entry-point": "./index.php",
-        "include": ["bin","js","css"],
-        "include-dev": false
-    }
-}
-CODE
+                    file_get_contents($resourcePath . DIRECTORY_SEPARATOR . 'package-extra-example.txt')
                 )
             )
             ->setDescription('Create a Phar file from a composer.json');
@@ -115,18 +107,21 @@ CODE
         $baseDir      = dirname($composerFile);
         chdir($baseDir);
 
+        /**
+         * The application
+         *
+         * @var Application $app
+         */
+        $app = $this->getApplication();
+        $app->getBuilder()->setComposer($composerFile);
+        $composerReader = $app->getBuilder()->getComposerReader();
+        $app->emit(new ComposerAwareEvent('command.package.start', $composerReader));
+
         /*
          * Read the composer.json file.
          * All information we need is store in it.
          */
-        $parsed = json_decode(file_get_contents($composerFile), true);
-        // check if our info is here
-        if (!array_key_exists('extra', $parsed)) {
-            $parsed['extra'] = array('phar-builder' => array());
-        } elseif (!array_key_exists('phar-builder', $parsed['extra'])) {
-            $parsed['extra']['phar-builder'] = array();
-        }
-        $extraData = $parsed['extra']['phar-builder'];
+        $extraData = $composerReader->getComposerConfig();
 
         $this->readSpecialParams($input);
 
@@ -137,7 +132,18 @@ CODE
         $outputDir   = $this->readParamComposerAsk($extraData, $input, $output, $baseDir, 'output-dir');
         $includes    = $this->readParamComposerAsk($extraData, $input, $output, $baseDir, 'include');
 
-        new PharBuilder($this->ioStyle, $composerFile, $outputDir, $name, $stubFile, $compression, $includes, $keepDev);
+        $builder = $app->getBuilder();
+        $builder->setComposer($composerFile);
+        $builder->setOutputDir($outputDir);
+        $builder->setPharName($name);
+        $builder->setStubFile($stubFile);
+        $builder->setCompression($compression);
+        $builder->setIncludes($includes);
+        $builder->setKeepDev($keepDev);
+
+        $builder->buildPhar();
+
+        $app->emit(new ComposerAwareEvent('command.package.end', $builder->getComposerReader()));
     }
 
     /**
