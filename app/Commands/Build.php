@@ -84,6 +84,9 @@ class Build extends Base
 
         // -- Ask for the output folder
         $outputDir = $this->askOutputDir($input, $output, dirname($composerFile));
+        
+        // -- Ask for the prepend shebang flag
+        $prependShebang = $this->askPrependShebang();
 
         // -- Build the Phar
         $builder = $app->getBuilder();
@@ -92,6 +95,7 @@ class Build extends Base
         $builder->setStubFile($stubFile);
         $builder->setCompression($compression);
         $builder->setKeepDev($keepDev);
+        $builder->setPrependShebang($prependShebang);
 
         $app->emit(new PharAwareEvent('command.build.start', $builder));
 
