@@ -85,6 +85,13 @@ class PharBuilder
         'gzip' => \Phar::GZ,
         'bzip2' => \Phar::BZ2,
     );
+    
+    /**
+     * Prepend the shebang?
+     * 
+     *  @var bool
+     */
+    protected $prependShebang = true;
 
     /**
      * Get the name of the PHAR
@@ -246,6 +253,28 @@ class PharBuilder
     {
         return $this->composerReader;
     }
+    
+    /**
+     * Sets prepend shebang flag
+     *
+     * @param bool $prependShebang prepend the shebang or not
+     *
+     * @return void
+     */
+    public function setPrependShebang($prependShebang)
+    {
+        $this->prependShebang = (bool) $prependShebang;
+    }
+    
+    /**
+     * Indicates whether the shebang should be prepended or not.
+     * 
+     * @return bool
+     */
+    public function isPrependShebang()
+    {
+        return $this->prependShebang;
+    }
 
     /**
      * The class constructor
@@ -324,7 +353,7 @@ class PharBuilder
 
         $this->stubFile = $this->makePathRelative($this->stubFile);
         $this->phar->setStub(
-            '#!/usr/bin/env php' . PHP_EOL .
+            ($this->isPrependShebang() ? '#!/usr/bin/env php' . PHP_EOL : '') .
             '<?php Phar::mapPhar(); include "phar://' . $this->alias . '/' . $this->stubFile .
             '"; __HALT_COMPILER(); ?>'
         );
