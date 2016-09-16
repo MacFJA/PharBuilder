@@ -87,11 +87,11 @@ class PharBuilder
     );
     
     /**
-     * Prepend the shebang?
+     * Skip the shebang?
      * 
      *  @var bool
      */
-    protected $prependShebang = true;
+    protected $skipShebang = false;
 
     /**
      * Get the name of the PHAR
@@ -255,25 +255,25 @@ class PharBuilder
     }
     
     /**
-     * Sets prepend shebang flag
+     * Sets the skip shebang flag.
      *
-     * @param bool $prependShebang prepend the shebang or not
+     * @param bool $skipShebang skip the shebang or not
      *
      * @return void
      */
-    public function setPrependShebang($prependShebang)
+    public function setSkipShebang($skipShebang)
     {
-        $this->prependShebang = (bool) $prependShebang;
+        $this->skipShebang = (bool) $skipShebang;
     }
     
     /**
-     * Indicates whether the shebang should be prepended or not.
+     * Indicates whether the shebang should be skipped or not.
      * 
      * @return bool
      */
-    public function isPrependShebang()
+    public function isSkipShebang()
     {
-        return $this->prependShebang;
+        return $this->skipShebang;
     }
 
     /**
@@ -353,7 +353,7 @@ class PharBuilder
 
         $this->stubFile = $this->makePathRelative($this->stubFile);
         $this->phar->setStub(
-            ($this->isPrependShebang() ? '#!/usr/bin/env php' . PHP_EOL : '') .
+            (!$this->isSkipShebang() ? '#!/usr/bin/env php' . PHP_EOL : '') .
             '<?php Phar::mapPhar(); include "phar://' . $this->alias . '/' . $this->stubFile .
             '"; __HALT_COMPILER(); ?>'
         );
