@@ -7,7 +7,7 @@
         "entry-point": "./index.php",
         "include": ["bin","js","css"],
         "include-dev": false,
-        "prepend-shebang": true,
+        "skip-shebang": false,
         "events": {
             "build.before" : "git describe --tags > bin/version.txt"
             "build.after": [
