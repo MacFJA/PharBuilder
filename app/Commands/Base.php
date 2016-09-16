@@ -329,6 +329,29 @@ abstract class Base extends Command
     }
 
     /**
+     * Prompt to the user the prepend shebang flag.
+     *
+     * @return bool The prepend shebang flag
+     */
+    protected function askPrependShebang()
+    {
+        return $this->ioStyle->confirm('Do you want to prepend shebang?', true);
+    }
+
+    /**
+     * Validates the prepend shebang flag by casting it bool.
+     *
+     * @param bool $value The prepend shebang flag
+     *
+     * @return bool prepend shebang flag
+     */
+    protected function validatePrependShebang($value)
+    {
+        return (bool) $value;
+    }
+
+
+    /**
      * Format code to be displayed in CLI help
      *
      * @param string $code The text to format
