@@ -12,6 +12,7 @@ All configurations are saved in the [`extra`](https://getcomposer.org/doc/04-sch
 1. [entry-point](#entry-point)
 1. [include](#include)
 1. [include-dev](#include-dev)
+1. [skip-shebang](#skip-shebang)
 1. [events](#events)
   1. [build.before](#build.before)
   1. [build.after](#build.after)
@@ -52,6 +53,14 @@ The default value is an empty list.
 It's a flag to indicate if _dev only_ packages (like PHPUnit, PHPMD, etc.) and _dev only_ code (like your unit tests) must be included.
 
 Set to `true` (JSON boolean) to add those packages and codes.
+
+The default value is `false`.
+
+### skip-shebang
+
+It's a flag to indicate if the shebang should be skipped or not. This is helpful if you want run a web-project as a phar.
+
+Set to `true` (JSON boolean) to skip the shebang.
 
 The default value is `false`.
 
@@ -110,6 +119,7 @@ Here a full-featured `phar-builder` configuration
         "entry-point": "./index.php",
         "include": ["bin","js","css"],
         "include-dev": false,
+        "skip-shebang": false,
         "events": {
             "command.package.before" : "git describe --tags > bin/version.txt"
             "command.package.after": [

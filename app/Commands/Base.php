@@ -329,6 +329,29 @@ abstract class Base extends Command
     }
 
     /**
+     * Prompt to the user the skip shebang flag.
+     *
+     * @return bool The skip shebang flag
+     */
+    protected function askSkipShebang()
+    {
+        return $this->ioStyle->confirm('Do you want to skip the shebang?', false);
+    }
+
+    /**
+     * Validates the skip shebang flag by casting it bool.
+     *
+     * @param bool $value The skip shebang flag
+     *
+     * @return bool skip shebang flag
+     */
+    protected function validateSkipShebang($value)
+    {
+        return (bool) $value;
+    }
+
+
+    /**
      * Format code to be displayed in CLI help
      *
      * @param string $code The text to format

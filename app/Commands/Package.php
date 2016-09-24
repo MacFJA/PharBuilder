@@ -69,6 +69,7 @@ class Package extends Base
                 InputOption::VALUE_IS_ARRAY | InputOption::VALUE_REQUIRED,
                 'List of directories to add in Phar'
             )
+            ->addOption('skip-shebang', 's', InputOption::VALUE_OPTIONAL, 'Skip the shebang')
             ->setHelp(
                 file_get_contents($resourcePath . DIRECTORY_SEPARATOR . 'package-help.txt') .
                 $this->codeHelpParagraph(
@@ -131,6 +132,7 @@ class Package extends Base
         $name        = $this->readParamComposerAskName($extraData, $input);
         $outputDir   = $this->readParamComposerAsk($extraData, $input, $output, $baseDir, 'output-dir');
         $includes    = $this->readParamComposerAsk($extraData, $input, $output, $baseDir, 'include');
+        $skipShebang = $this->readParamComposerAsk($extraData, $input, $output, $baseDir, 'skip-shebang');
 
         $builder = $app->getBuilder();
         $builder->setComposer($composerFile);
@@ -140,6 +142,7 @@ class Package extends Base
         $builder->setCompression($compression);
         $builder->setIncludes($includes);
         $builder->setKeepDev($keepDev);
+        $builder->setSkipShebang($skipShebang);
 
         $builder->buildPhar();
 

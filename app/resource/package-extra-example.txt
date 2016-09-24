@@ -6,7 +6,8 @@
         "output-dir": "../",
         "entry-point": "./index.php",
         "include": ["bin","js","css"],
-        "include-dev": false
+        "include-dev": false,
+        "skip-shebang": false,
         "events": {
             "build.before" : "git describe --tags > bin/version.txt"
             "build.after": [
