@@ -79,9 +79,9 @@ Help:
    │          "output-dir": "../",
    │          "entry-point": "./index.php",
    │          "include": ["bin","js","css"],
-   │          "include-dev": false
+   │          "include-dev": false,
    │          "events": {
-   │              "build.before" : "git describe --tags > bin/version.txt"
+   │              "build.before" : "git describe --tags > bin/version.txt",
    │              "build.after": [
    │                  "rm bin/version.txt",
    │                  "chmod +x ../application.phar"
