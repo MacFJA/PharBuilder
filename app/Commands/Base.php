@@ -373,17 +373,19 @@ abstract class Base extends Command
      * Display an error that indicate that the application is in a no interactive mode and require an input.
      * Exit code: `6`
      *
+     * @param string|null $missedOption
      * @return void
      *
      * @SuppressWarnings(PHPMD.ExitExpression) -- Normal/Wanted behavior
      */
-    protected function throwErrorForNoInteractiveMode()
+    protected function throwErrorForNoInteractiveMode($missedOption = null)
     {
-        $this->ioStyle->error(
-            //@codingStandardsIgnoreLine
-            'The terminal set the application in a no-interactive mode. ' .
-            'therefor this command cannot be used as its require input'
-        );
+        $message = 'The terminal set the application in a no-interactive mode.';
+        if ($missedOption) {
+            $message .= ' Disable no-interactive mode or describe "' . $missedOption .'" ' .
+                'in composer.json (ex. https://github.com/MacFJA/PharBuilder/blob/master/docs/ComposerExtra.md)';
+        }
+        $this->ioStyle->error($message);
         exit(6);
     }
 }
