@@ -455,7 +455,7 @@ class PharBuilder
              *
              * @var \Symfony\Component\Finder\SplFileInfo $file
              */
-            $this->addFile(realpath($directory . DIRECTORY_SEPARATOR . $file->getRelativePathname()));
+            $this->addFile(rtrim($directory, '\/') . DIRECTORY_SEPARATOR . $file->getRelativePathname());
         }
     }
 
