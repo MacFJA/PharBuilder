@@ -136,12 +136,12 @@ class Composer
     public function getStubFiles($includeDev = false)
     {
         if ($includeDev) {
-            return [];
+            return array();
         }
 
         $lock = $this->getLockFileContent();
 
-        $files = [];
+        $files = array();
 
         if (isset($lock["packages-dev"])) {
             foreach ($lock["packages-dev"] as $package) {

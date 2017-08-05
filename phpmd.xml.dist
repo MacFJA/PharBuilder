@@ -7,10 +7,18 @@
         Composition of standard PHPMD rules.
     </description>
 
-    <!-- Import the entire unused code rule set -->
-    <rule ref="rulesets/codesize.xml"/>
     <rule ref="rulesets/controversial.xml"/>
+    <rule ref="rulesets/codesize.xml">
+        <!-- Exclude for properties definition -->
+        <exclude name="ExcessiveClassComplexity"/>
+    </rule>
+    <rule ref="rulesets/codesize.xml/ExcessiveClassComplexity">
+        <properties>
+            <property name="maximum" value="55" />
+        </properties>
+    </rule>
     <rule ref="rulesets/design.xml">
+        <!-- Exclude for properties definition -->
         <exclude name="CouplingBetweenObjects"/>
     </rule>
     <rule ref="rulesets/design.xml/CouplingBetweenObjects">

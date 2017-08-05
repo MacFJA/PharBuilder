@@ -14,6 +14,7 @@
         <exclude name="Generic.Functions.OpeningFunctionBraceKernighanRitchie.BraceOnNewLine"/>
         <exclude name="Generic.Functions.OpeningFunctionBraceBsdAllman.BraceOnSameLine"/>
         <exclude name="Generic.PHP.ClosingPHPTag"/>
+        <exclude name="Generic.Classes.OpeningBraceSameLine.BraceOnNewLine"/>
 
         <!-- Alternative choice -->
         <exclude name="Generic.Arrays.DisallowLongArraySyntax"/>
@@ -24,6 +25,7 @@
         <exclude name="Generic.CodeAnalysis.ForLoopShouldBeWhileLoop"/>
         <exclude name="Generic.CodeAnalysis.ForLoopWithTestFunctionCall"/>
         <exclude name="Generic.Files.LowercasedFilename"/>
+        <exclude name="Generic.Formatting.SpaceAfterNot.Incorrect"/>
     </rule>
 
     <rule ref="PEAR.Commenting">

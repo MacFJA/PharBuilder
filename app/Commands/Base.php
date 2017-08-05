@@ -373,7 +373,8 @@ abstract class Base extends Command
      * Display an error that indicate that the application is in a no interactive mode and require an input.
      * Exit code: `6`
      *
-     * @param string|null $missedOption
+     * @param string|null $missedOption The name of the missing option
+     *
      * @return void
      *
      * @SuppressWarnings(PHPMD.ExitExpression) -- Normal/Wanted behavior
@@ -382,6 +383,7 @@ abstract class Base extends Command
     {
         $message = 'The terminal set the application in a no-interactive mode.';
         if ($missedOption) {
+            // @codingStandardsIgnoreLine
             $message .= ' Disable no-interactive mode or describe "' . $missedOption .'" ' .
                 'in composer.json (ex. https://github.com/MacFJA/PharBuilder/blob/master/docs/ComposerExtra.md)';
         }
