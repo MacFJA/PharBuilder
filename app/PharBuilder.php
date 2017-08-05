@@ -88,8 +88,8 @@ class PharBuilder
     
     /**
      * Skip the shebang?
-     * 
-     *  @var bool
+     *
+     * @var bool
      */
     protected $skipShebang = false;
 
@@ -268,7 +268,7 @@ class PharBuilder
     
     /**
      * Indicates whether the shebang should be skipped or not.
-     * 
+     *
      * @return bool
      */
     public function isSkipShebang()

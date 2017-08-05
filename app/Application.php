@@ -102,7 +102,8 @@ class Application extends Base
      *
      * @return void
      *
-     * @SuppressWarnings(PHPMD.ExitExpression, PHPMD.Superglobals) -- Normal/Wanted behavior
+     * @SuppressWarnings(PHPMD.ExitExpression) -- Normal/Wanted behavior
+     * @SuppressWarnings(PHPMD.Superglobals)   -- Normal/Wanted behavior
      */
     public function checkSystem(SymfonyStyle $ioStyle)
     {
