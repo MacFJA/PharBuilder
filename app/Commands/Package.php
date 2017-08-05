@@ -174,7 +174,7 @@ class Package extends Base
                 $input->setOption($dataName, $composerData[$dataName]);
             } else {
                 if (!$input->isInteractive()) {
-                    $this->throwErrorForNoInteractiveMode();
+                    $this->throwErrorForNoInteractiveMode($dataName);
                 }
                 $input->setOption(
                     $dataName,
@@ -213,7 +213,7 @@ class Package extends Base
                 $input->setOption('name', $composerData['name']);
             } else {
                 if (!$input->isInteractive()) {
-                    $this->throwErrorForNoInteractiveMode();
+                    $this->throwErrorForNoInteractiveMode('name');
                 }
                 $input->setOption('name', $this->askPharName());
             }
