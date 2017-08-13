@@ -9,8 +9,8 @@
     ],
     "require": {
         "php": ">=5.4.0",
-        "symfony/console": "~2.7",
-        "macfja/symfony-console-filechooser": "0.1",
+        "symfony/console": "~2.7 || ^3.0",
+        "macfja/symfony-console-filechooser": "~0.2",
         "rych/bytesize": "~1.0",
         "webignition/readable-duration": "^0.2",
         "league/event": "^2.1",
