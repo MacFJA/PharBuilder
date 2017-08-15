@@ -363,7 +363,12 @@ class PharBuilder
 
         // Add all project file (based on composer declaration)
         foreach ($composerInfo['dirs'] as $dir) {
-            $this->addDir($dir);
+            if (!is_array($dir)) {
+                $dir = array($dir);
+            }
+            foreach ($dir as $subDir) {
+                $this->addDir($subDir);
+            }
         }
         foreach ($composerInfo['files'] as $file) {
             $this->addFile($file);
