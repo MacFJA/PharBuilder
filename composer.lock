@@ -1,10 +1,10 @@
 {
     "_readme": [
         "This file locks the dependencies of your project to a known state",
-        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "035fbedb2d4490c148dd376c4378b4b4",
+    "content-hash": "4a34a1f1f46f056f04e1fdc53992f964",
     "packages": [
         {
             "name": "league/event",

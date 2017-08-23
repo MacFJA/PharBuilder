@@ -22,20 +22,23 @@ All configurations are saved in the [`extra`](https://getcomposer.org/doc/04-sch
 Indicate the compression to use.
 Possible values are (case insensitive):
  - No
- - None
  - GZip
  - BZip2
 
-The default value is `None`.
+The default value is `No`.
 
 ### name
 
 The name you want for the PHAR.
-The name can't contain a directory separator (` / ` or ` \ `)
+The name can't contain a directory separator (` / ` or ` \ `).
+
+The default value is base on the project name in the `composer.json` file.
 
 ### output-dir
 
 The directory where the PHAR must be created. The path can be relative, and it will be relative to the `composer.json` file.
+
+The default value is the directory that contain the `composer.json` file.
 
 ### entry-point
 

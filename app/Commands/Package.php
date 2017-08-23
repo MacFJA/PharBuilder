@@ -7,6 +7,7 @@ use MacFJA\PharBuilder\Application;
 use MacFJA\PharBuilder\Event\ComposerAwareEvent;
 use MacFJA\PharBuilder\Event\PharAwareEvent;
 use MacFJA\PharBuilder\Utils\Composer;
+use MacFJA\PharBuilder\Utils\Config\Compression;
 use Symfony\Component\Console\Exception\InvalidArgumentException;
 use Symfony\Component\Console\Exception\RuntimeException;
 use Symfony\Component\Console\Input\InputArgument;
@@ -73,7 +74,7 @@ class Package extends Base
             ->setHelp(
                 file_get_contents($resourcePath . DIRECTORY_SEPARATOR . 'package-help.txt') .
                 $this->codeHelpParagraph(
-                    file_get_contents($resourcePath . DIRECTORY_SEPARATOR . 'package-extra-example.txt')
+                    file_get_contents($resourcePath . DIRECTORY_SEPARATOR . 'package-extra-example.txt')?:''
                 )
             )
             ->setDescription('Create a Phar file from a composer.json');
@@ -81,7 +82,7 @@ class Package extends Base
 
     /**
      * Execute the command.
-     * Exit codes: `0`, `1`, `2`, `3`, `4`, `6`
+     * Exit codes: `0`, `1`, `2`, `3`, `4`, `6`, `7`, `8`
      *
      * @param InputInterface  $input  The CLI input interface (reading user input)
      * @param OutputInterface $output The CLI output interface (display message)
@@ -94,26 +95,24 @@ class Package extends Base
      * @throws \UnexpectedValueException
      * @throws \InvalidArgumentException
      * @throws \RuntimeException
-     */
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter) -- $output parameter inherited from parent class
+     *///@codingStandardsIgnoreLine
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $composerFile = $input->getArgument('composer');
-        if (null === $composerFile) {
-            $composerFile = getcwd() . DIRECTORY_SEPARATOR . 'composer.json';
-        }
-
-        $this->validateComposer($composerFile);
-
-        $composerFile = realpath($composerFile);
-        $baseDir      = dirname($composerFile);
-        chdir($baseDir);
-
         /**
          * The application
          *
          * @var Application $app
          */
         $app = $this->getApplication();
+        $app->getConfig()->setReadParam(true);
+        $composerFile = $app->getConfig()->getValue('composer');
+
+        $composerFile = realpath($composerFile);
+        $baseDir      = dirname($composerFile);
+        chdir($baseDir);
+
         $app->getBuilder()->setComposer($composerFile);
         $composerReader = $app->getBuilder()->getComposerReader();
         $app->emit(new ComposerAwareEvent('command.package.start', $composerReader));
@@ -123,145 +122,20 @@ class Package extends Base
          * All information we need is store in it.
          */
         $extraData = $composerReader->getComposerConfig();
+        $app->getConfig()
+            ->setComposerDir($baseDir)
+            ->setComposerReader($composerReader)
+            ->setComposerExtra($extraData);
 
         $this->readSpecialParams($input);
 
-        $keepDev     = $this->readParamComposerIncludeDev($extraData, $input);
-        $stubFile    = $this->readParamComposerAsk($extraData, $input, $output, $baseDir, 'entry-point');
-        $compression = $this->readParamComposerAsk($extraData, $input, $output, $baseDir, 'compression');
-        $name        = $this->readParamComposerAskName($extraData, $input);
-        $outputDir   = $this->readParamComposerAsk($extraData, $input, $output, $baseDir, 'output-dir');
-        $includes    = $this->readParamComposerAsk($extraData, $input, $output, $baseDir, 'include');
-        $skipShebang = $this->readParamComposerSkipShebang($extraData, $input);
 
         $builder = $app->getBuilder();
         $builder->setComposer($composerFile);
-        $builder->setOutputDir($outputDir);
-        $builder->setPharName($name);
-        $builder->setStubFile($stubFile);
-        $builder->setCompression($compression);
-        $builder->setIncludes($includes);
-        $builder->setKeepDev($keepDev);
-        $builder->setSkipShebang($skipShebang);
 
         $builder->buildPhar();
 
         $app->emit(new ComposerAwareEvent('command.package.end', $builder->getComposerReader()));
-    }
-
-    /**
-     * Read the CLI argument,
-     * if not found read the Composer.json file,
-     * if not provided in composer.json, ask the user
-     *
-     * @param array           $composerData The composer.json extra data content
-     * @param InputInterface  $input        The CLI input interface (reading user input)
-     * @param OutputInterface $output       The CLI output interface (display message)
-     * @param string          $baseDir      The path to the directory that contains the composer.json file
-     * @param string          $dataName     The name of the data (hyphen word separated)
-     *
-     * @return mixed The value of `$dataName`
-     */
-    protected function readParamComposerAsk(
-        $composerData,
-        InputInterface $input,
-        OutputInterface $output,
-        $baseDir,
-        $dataName
-    ) {
-        if (null == $input->getOption($dataName)) {
-            if (array_key_exists($dataName, $composerData)) {
-                $input->setOption($dataName, $composerData[$dataName]);
-            } else {
-                if (!$input->isInteractive()) {
-                    $this->throwErrorForNoInteractiveMode($dataName);
-                }
-                $input->setOption(
-                    $dataName,
-                    call_user_func_array(
-                        array($this, $this->getFunctionName('ask', $dataName)),
-                        array($input, $output, $baseDir)
-                    )
-                );
-            }
-        }
-        $data = call_user_func_array(
-            array($this, $this->getFunctionName('validate', $dataName)),
-            array($input->getOption($dataName))
-        );
-
-        return $data;
-    }
-
-    /**
-     * Read the CLI argument for the phar name,
-     * if not found read the Composer.json file,
-     * if not provided in composer.json, ask the user
-     *
-     * @param array          $composerData The composer.json extra data content
-     * @param InputInterface $input        The CLI input interface (reading user input)
-     *
-     * @return mixed The name of the phar
-     *
-     * @throws InvalidArgumentException
-     * @throws RuntimeException
-     */
-    private function readParamComposerAskName($composerData, InputInterface $input)
-    {
-        if (null == $input->getOption('name')) {
-            if (array_key_exists('name', $composerData)) {
-                $input->setOption('name', $composerData['name']);
-            } else {
-                if (!$input->isInteractive()) {
-                    $this->throwErrorForNoInteractiveMode('name');
-                }
-                $input->setOption('name', $this->askPharName());
-            }
-        }
-        return $this->validatePharName($input->getOption('name'));
-    }
-
-    /**
-     * Read the CLI argument for the including dev code and dev packages,
-     * if not found read the Composer.json file.
-     *
-     * @param array          $composerData The composer.json extra data content
-     * @param InputInterface $input        The CLI input interface (reading user input)
-     *
-     * @return bool The include-dev flag
-     */
-    private function readParamComposerIncludeDev($composerData, InputInterface $input)
-    {
-        if (null == $input->getOption('include-dev')) {
-            if (array_key_exists('include-dev', $composerData)) {
-                $input->setOption('include-dev', $composerData['include-dev']);
-            } else {
-                $input->setOption('include-dev', false);
-            }
-        }
-        return $this->validateIncludeDev($input->getOption('include-dev'));
-    }
-
-    /**
-     * Read the CLI argument for the skip shebang,
-     * if not found read the Composer.json file,
-     * if not provided in composer.json, choose "false"
-     *
-     * @param array          $composerData The composer.json extra data content
-     * @param InputInterface $input        The CLI input interface (reading user input)
-     *
-     * @return bool The skip-shebang flag
-     */
-    private function readParamComposerSkipShebang($composerData, InputInterface $input)
-    {
-        if (null == $input->getOption('skip-shebang')) {
-            if (array_key_exists('skip-shebang', $composerData)) {
-                $input->setOption('skip-shebang', $composerData['skip-shebang']);
-            } else {
-                $input->setOption('skip-shebang', false);
-            }
-        }
-        return $this->validateSkipShebang($input->getOption('skip-shebang'));
     }
 
     /**
@@ -274,48 +148,11 @@ class Package extends Base
     protected function readSpecialParams(InputInterface $input)
     {
         if ($input->hasParameterOption('-z') || $input->hasParameterOption('--gzip')) {
-            $input->setOption('compression', 'GZip');
+            $input->setOption('compression', Compression::GZIP);
         } elseif ($input->hasParameterOption('-b') || $input->hasParameterOption('--bzip2')) {
-            $input->setOption('compression', 'BZip2');
+            $input->setOption('compression', Compression::BZIP2);
         } elseif ($input->hasParameterOption('-f') || $input->hasParameterOption('--no-compression')) {
-            $input->setOption('compression', 'No');
+            $input->setOption('compression', Compression::NO);
         }
-    }
-
-    /**
-     * Do nothing.
-     * Normally prompt the user to add directory in the phar,
-     * but this option is only read in CLI param and composer.json.
-     *
-     * @param InputInterface  $input   The CLI input interface (reading user input)
-     * @param OutputInterface $output  The CLI output interface (display message)
-     * @param string          $baseDir The path to the directory that contains the composer.json file
-     *
-     * @return array An empty array
-     *
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter) -- Do nothing function
-     *///@codingStandardsIgnoreLine
-    protected function askInclude(InputInterface $input, OutputInterface $output, $baseDir)
-    {
-        // Do nothing
-        return array();
-    }
-
-    /**
-     * Validate if the value are valid directories
-     *
-     * @param array $value List of path to directories
-     *
-     * @return array List of directory path to include
-     */
-    protected function validateInclude($value)
-    {
-        foreach ($value as $key => $dir) {
-            if (!file_exists($dir) || !is_dir($dir)) {
-                unset($value[$key]);
-                $this->ioStyle->warning('Warning: the path "' . $dir . '" is not a valid directory. Path ignored.');
-            }
-        }
-        return $value;
     }
 }

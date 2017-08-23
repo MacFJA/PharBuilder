@@ -36,7 +36,7 @@ class Build extends Base
 
     /**
      * Execute the command.
-     * Exit codes: `0`, `1`, `2`, `3`, `4`, `6`
+     * Exit codes: `0`, `1`, `2`, `3`, `4`, `6`, `7`, `8`
      *
      * @param InputInterface  $input  The CLI input interface (reading user input)
      * @param OutputInterface $output The CLI output interface (display message)
@@ -50,7 +50,9 @@ class Build extends Base
      * @throws \UnexpectedValueException
      * @throws \InvalidArgumentException
      * @throws \Exception
-     */
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter) -- $output parameter inherited from parent class
+     *///@codingStandardsIgnoreLine
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         if (!$input->isInteractive()) {
@@ -63,44 +65,64 @@ class Build extends Base
          * @var Application $app
          */
         $app = $this->getApplication();
+        $app->getConfig()->setReadParam(false);
+        $app->getConfig()->setReadExtra(false);
 
         $this->ioStyle->title('Configuring your Phar application...');
 
         // -- Ask for composer.json file (the base file of the project)
-        $composerFile = $this->askComposer($input, $output);
+        $composerFile = realpath($app->getConfig()->getValue('composer'));
         $app->getBuilder()->setComposer($composerFile);
 
+        $app->getConfig()->setComposerDir(dirname($composerFile));
+
         // -- Ask for the dev
-        $keepDev = $this->askIncludeDev();
+        $app->getConfig()->getValue('include-dev');
 
         // -- Ask for the stub <=> the entry point of the application
-        $stubFile = $this->askEntryPoint($input, $output, dirname($composerFile));
+        $app->getConfig()->getValue('entry-point');
 
         // -- Ask for the compression
-        $compression = $this->askCompression();
+        $app->getConfig()->getValue('compression');
 
         // -- Ask for the name of the phar file
-        $name = $this->askPharName();
+        $app->getConfig()->getValue('name');
 
         // -- Ask for the output folder
-        $outputDir = $this->askOutputDir($input, $output, dirname($composerFile));
-        
+        $app->getConfig()->getValue('output-dir');
+
         // -- Ask for the skip shebang flag
-        $skipShebang = $this->askSkipShebang();
+        $app->getConfig()->getValue('shebang');
 
         // -- Build the Phar
         $builder = $app->getBuilder();
-        $builder->setOutputDir($outputDir);
-        $builder->setPharName($name);
-        $builder->setStubFile($stubFile);
-        $builder->setCompression($compression);
-        $builder->setKeepDev($keepDev);
-        $builder->setSkipShebang($skipShebang);
 
         $app->emit(new PharAwareEvent('command.build.start', $builder));
 
         $builder->buildPhar();
 
         $app->emit(new ComposerAwareEvent('command.build.end', $builder->getComposerReader()));
+    }
+
+    /**
+     * Display an error that indicate that the application is in a no interactive mode and require an input.
+     * Exit code: `6`
+     *
+     * @param string|null $missedOption The name of the missing option
+     *
+     * @return void
+     *
+     * @SuppressWarnings(PHPMD.ExitExpression) -- Normal/Wanted behavior
+     */
+    protected function throwErrorForNoInteractiveMode($missedOption = null)
+    {
+        $message = 'The terminal set the application in a no-interactive mode.';
+        if ($missedOption) {
+            // @codingStandardsIgnoreLine
+            $message .= ' Disable no-interactive mode or describe "' . $missedOption .'" ' .
+                'in composer.json (ex. https://github.com/MacFJA/PharBuilder/blob/master/docs/ComposerExtra.md)';
+        }
+        $this->ioStyle->error($message);
+        exit(6);
     }
 }

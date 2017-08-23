@@ -7,6 +7,7 @@ use League\Event\EventInterface;
 use MacFJA\PharBuilder\Commands\Build;
 use MacFJA\PharBuilder\Commands\Package;
 use MacFJA\PharBuilder\Event\EventManager;
+use MacFJA\PharBuilder\Utils\Config;
 use MacFJA\Symfony\Console\Filechooser\FilechooserHelper;
 use Symfony\Component\Console\Application as Base;
 use Symfony\Component\Console\Exception\LogicException;
@@ -26,6 +27,8 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  *  - `4`: The Phar filename is not valid
  *  - `5`: PHP ini wrongly setting up
  *  - `6`: Require input, but in no-interactive mode
+ *  - `7`: Unexpected value.
+ *  - `8`: Wrong compression value
  *
  * @package MacFJA\PharBuilder
  * @author  MacFJA
@@ -38,13 +41,20 @@ class Application extends Base
      *
      * @var PharBuilder
      */
-    protected $builder;
+    protected $builder = null;
     /**
      * The application event manager
      *
      * @var EventManager
      */
     protected $eventManager;
+
+    /**
+     * The configuration factory
+     *
+     * @var Config
+     */
+    protected $config = null;
 
     /**
      * Get the application PHAR Builder
@@ -91,7 +101,17 @@ class Application extends Base
      */
     public function emit($event)
     {
-        $this->eventManager->emit($event);
+        return $this->eventManager->emit($event);
+    }
+
+    /**
+     * Get the configuration factory
+     *
+     * @return Config
+     */
+    public function getConfig()
+    {
+        return $this->config;
     }
 
     /**
@@ -140,13 +160,27 @@ class Application extends Base
      * @param OutputInterface $output The CLI output interface (display message)
      *
      * @return void
-     *///@codingStandardsIgnoreLine
+     *
+     * @codingStandardsIgnoreStart
+     */
     protected function configureIO(InputInterface $input, OutputInterface $output)
-    {
+    {//@codingStandardsIgnoreEnd
         parent::configureIO($input, $output);
 
-        $ioStyle       = new SymfonyStyle($input, $output);
-        $this->builder = new PharBuilder($ioStyle);
+        $ioStyle = new SymfonyStyle($input, $output);
+        /**
+         * The input helper to select a file
+         *
+         * @var FilechooserHelper $filechooser
+         */
+        $filechooser   = $this->getHelperSet()->get('filechooser');
+        $this->config  = new Config(
+            $input,
+            $output,
+            $filechooser,
+            $ioStyle
+        );
+        $this->builder = new PharBuilder($ioStyle, $this->config);
         foreach ($this->all() as $command) {
             if ($command instanceof Commands\Base) {
                 $command->setIo($ioStyle);

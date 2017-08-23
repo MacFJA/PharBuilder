@@ -26,7 +26,7 @@
             "skip-shebang": false,
             "include-dev": false,
             "entry-point": "bin/phar-builder.php",
-            "compression": "None",
+            "compression": "No",
             "name": "phar-builder.phar",
             "output-dir": "./",
             "include": ["bin"]
