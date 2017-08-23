@@ -22,7 +22,7 @@ class Composer
     /**
      * Instance cache for the `composer.lock` file
      *
-     * @var array
+     * @var array|null
      */
     private $lockContentCache;
 
@@ -47,6 +47,32 @@ class Composer
     }
 
     /**
+     * Get the value for the composer.json
+     *
+     * @param string $atPath The XPath like path to the value
+     *
+     * @return mixed|null
+     */
+    public function getValue($atPath)
+    {
+        $parts   = explode('/', $atPath);
+        $content = file_get_contents($this->composerJsonPath);
+        if ($content === false) {
+            return null;
+        }
+        $search = json_decode($content, true);
+
+        foreach ($parts as $part) {
+            if (array_key_exists($part, $search)) {
+                $search = $search[$part];
+            } else {
+                return null;
+            }
+        }
+        return $search;
+    }
+
+    /**
      * Get all paths (files and directories) of root package sources.
      *
      * @param bool $includeDev Indicate if the dev files must be added.
@@ -57,11 +83,11 @@ class Composer
      */
     public function getSourcePaths($includeDev = false)
     {
-        $composer = json_decode(file_get_contents($this->composerJsonPath), true);
-
-        if (!$composer) {
+        $content = file_get_contents($this->composerJsonPath);
+        if ($content === false) {
             return array();
         }
+        $composer = json_decode($content, true);
 
         $paths = array();
         if (array_key_exists('autoload', $composer)) {
@@ -150,12 +176,25 @@ class Composer
 
         $files = array();
 
-        if (isset($lock["packages-dev"])) {
-            foreach ($lock["packages-dev"] as $package) {
-                if (isset($package["autoload"]["files"])) {
-                    $files = array_merge($files, array_map(function ($file) use ($package) {
-                        return $package["name"] . "/" . $file;
-                    }, $package["autoload"]["files"]));
+        if (isset($lock['packages-dev'])) {
+            foreach ($lock['packages-dev'] as $package) {
+                if (isset($package['autoload']['files'])) {
+                    $files = array_merge(
+                        $files,
+                        array_map(
+                            /**
+                             * Get the full path a file
+                             *
+                             * @param string $file The file path
+                             *
+                             * @return string
+                             */
+                            function ($file) use ($package) {
+                                return $package['name'] . '/' . $file;
+                            },
+                            $package['autoload']['files']
+                        )
+                    );
                 }
             }
         }
@@ -181,7 +220,13 @@ class Composer
                 );
             }
 
-            $this->lockContentCache = json_decode(file_get_contents($lockFile), true);
+            $content = file_get_contents($lockFile);
+            if ($content === false) {
+                throw new \RuntimeException(
+                    sprintf('The "composer.lock" (%s) cannot be read.', $lockFile)
+                );
+            }
+            $this->lockContentCache = json_decode($content, true);
         }
 
         return $this->lockContentCache;
@@ -195,21 +240,8 @@ class Composer
      */
     public function getVendorDir()
     {
-        $composer = json_decode(file_get_contents($this->composerJsonPath), true);
-
-        if (!$composer) {
-            return 'vendor';
-        }
-
-        if (!array_key_exists('config', $composer)) {
-            return 'vendor';
-        }
-
-        if (!array_key_exists('vendor-dir', $composer['config'])) {
-            return 'vendor';
-        }
-
-        return $composer['config']['vendor-dir'];
+        $vendorDir = $this->getValue('config/vendor-dir');
+        return $vendorDir !== null?$vendorDir:'vendor';
     }
 
     /**
@@ -255,18 +287,7 @@ class Composer
          * Read the composer.json file.
          * All information we need is store in it.
          */
-        $parsed = json_decode(file_get_contents($this->composerJsonPath), true);
-
-        if (!$parsed) {
-            return array();
-        }
-
-        // check if our info is here
-        if (!array_key_exists('extra', $parsed)) {
-            $parsed['extra'] = array('phar-builder' => array());
-        } elseif (!array_key_exists('phar-builder', $parsed['extra'])) {
-            $parsed['extra']['phar-builder'] = array();
-        }
-        return $parsed['extra']['phar-builder'];
+        $extra = $this->getValue('extra/phar-builder');
+        return $extra !== null?$extra:array();
     }
 }
