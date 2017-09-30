@@ -1,3 +1,5 @@
 phpcs:
   standard: phpcs.xml.dist
 phpmd: phpmd.xml.dist
+psalm:
+  config: psalm.xml

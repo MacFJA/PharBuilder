@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e2eaa32b03025707ecf68972312408f0",
+    "content-hash": "e7ff68e765b9cac42c6707bb27422f1a",
     "packages": [
         {
             "name": "league/event",

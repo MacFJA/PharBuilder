@@ -58,7 +58,7 @@ class Chain implements Definition
      *
      * @param Definition  $config The configuration reader
      * @param string|null $before <p>The FCQN of the class where to add the configuration. If not provided or
-     *                             non-existent, the configuration will be added at the end of the chain.</p>
+     *                            non-existent, the configuration will be added at the end of the chain.</p>
      *
      * @return $this
      */

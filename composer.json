@@ -33,25 +33,16 @@
         }
     },
     "require-dev": {
-        "phpmd/phpmd": "^2.4",
-        "sebastian/phpcpd": "^2.0 || ^3.0",
-        "squizlabs/php_codesniffer": "^2.5",
-        "phpmetrics/phpmetrics": "^2.2",
-        "edgedesign/phpqa": "^1.13",
         "jakub-onderka/php-parallel-lint": "^0.9.2",
-        "vimeo/psalm": "^0.3.53"
+        "vimeo/psalm": "^0.3.55",
+        "edgedesign/phpqa": "^1.15"
     },
     "scripts": {
         "qa-details": [
-            "php -l app/",
-            "phpmd app/ text phpmd.xml.dist",
-            "phpcpd app/",
-            "phpcs",
-            "psalm app/"
+            "phpqa --analyzedDirs app/ --verbose --tools phpmetrics,phploc,phpcs:0,phpmd:0,phpcpd:0,parallel-lint:0,psalm:0"
         ],
         "qa": [
-            "phpqa --analyzedDirs app/ --report --tools phpmetrics,phploc,phpcs:0,phpmd:0,phpcpd:0,parallel-lint:0",
-            "psalm --output-format=emacs app/"
+            "phpqa --analyzedDirs app/ --report --tools phpmetrics,phploc,phpcs:0,phpmd:0,phpcpd:0,parallel-lint:0,psalm:0"
         ]
     }
 }
