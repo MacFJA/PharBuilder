@@ -353,7 +353,7 @@ class PharBuilder
 
         $this->stubFile = $this->makePathRelative($this->stubFile);
         $this->phar->setStub(
-            (!$this->isSkipShebang() ? '#!/usr/bin/env php' . PHP_EOL : '') .
+            (!$this->isSkipShebang() ? '#!/usr/bin/env php' . "\n" : '') .
             '<?php Phar::mapPhar(); include "phar://' . $this->alias . '/' . $this->stubFile .
             '"; __HALT_COMPILER(); ?>'
         );
@@ -460,7 +460,7 @@ class PharBuilder
              *
              * @var \Symfony\Component\Finder\SplFileInfo $file
              */
-            $this->addFile($directory . DIRECTORY_SEPARATOR . $file->getRelativePathname());
+            $this->addFile(rtrim($directory, '\/') . DIRECTORY_SEPARATOR . $file->getRelativePathname());
         }
     }
 
