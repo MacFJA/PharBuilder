@@ -23,6 +23,8 @@
     "bin": ["bin/phar-builder", "bin/phar-builder.php"],
     "extra": {
         "phar-builder": {
+            "skip-shebang": false,
+            "include-dev": false,
             "entry-point": "bin/phar-builder.php",
             "compression": "None",
             "name": "phar-builder.phar",
