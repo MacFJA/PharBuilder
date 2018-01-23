@@ -42,7 +42,7 @@
             "phpqa --analyzedDirs app/ --verbose --tools phpmetrics,phploc,phpcs:0,phpmd:0,phpcpd:0,parallel-lint:0,psalm:0"
         ],
         "qa": [
-            "phpqa --analyzedDirs app/ --report --tools phpmetrics,phploc,phpcs:0,phpmd:0,phpcpd:0,parallel-lint:0,psalm:0"
+            "phpqa --analyzedDirs app/ --report --tools phpmetrics,pdepends,phploc,phpcs:0,phpmd:0,phpcpd:0,parallel-lint:0,psalm:0"
         ]
     }
 }

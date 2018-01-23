@@ -6,6 +6,10 @@ use League\Event\Emitter;
 use MacFJA\PharBuilder\Application;
 use Neutron\SignalHandler\SignalHandler;
 
+if (!defined('SIGINT')) {
+    define('SIGINT', 3);
+}
+
 /**
  * Class EventManager.
  * Register handler, send event.
