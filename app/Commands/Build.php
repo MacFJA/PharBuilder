@@ -102,6 +102,8 @@ class Build extends Base
         $builder->buildPhar();
 
         $app->emit(new ComposerAwareEvent('command.build.end', $builder->getComposerReader()));
+
+        return null;
     }
 
     /**

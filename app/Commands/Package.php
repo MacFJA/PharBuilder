@@ -136,6 +136,8 @@ class Package extends Base
         $builder->buildPhar();
 
         $app->emit(new ComposerAwareEvent('command.package.end', $builder->getComposerReader()));
+
+        return null;
     }
 
     /**

@@ -244,15 +244,10 @@ class PharBuilder
                 $this->addDir($value);
             });
         }
-        array_walk($composerInfo['files'], array($this, 'addFile'));
-        array_walk($composerInfo['stubs'], function ($value) {
-            $this->addFakeFile($value);
-        });
-        // Add included directories
-        $includes = $this->getIncludes();
-        array_walk($includes, function ($value) {
-            $this->addDir($value);
-        });
+        $this->addPathToPhar($composerInfo['files'], 'addFile');
+        $this->addPathToPhar($composerInfo['stubs'], 'addFakeFile');
+        $this->addPathToPhar($this->getIncludes(), 'addDir');
+
         // Add the composer vendor dir
         $filesAutoload = $this->composerReader->getRemoveFilesAutoloadFor($composerInfo['excludes']);
         $this->addDir($composerInfo['vendor'], $composerInfo['excludes']);
@@ -276,6 +271,31 @@ class PharBuilder
             'File size: ' . $size->formatBinary(filesize($this->getPharPath())?:0) . PHP_EOL .
             'Process duration: ' . $this->buildDuration($startTime, $endTime)
         ));
+    }
+
+    /**
+     * Add a list of path into the Phar
+     *
+     * @param array  $pathList     The list of path to add
+     * @param string $additionType The type (method name) of path's addition
+     *
+     * @return void
+     */
+    private function addPathToPhar($pathList, $additionType)
+    {
+        array_walk(
+            $pathList,
+            /**
+             * Add each path into the phar
+             *
+             * @param string $path
+             *
+             * @return void
+             */
+            function ($path) use ($additionType) {
+                $this->{$additionType}($path);
+            }
+        );
     }
 
     /**
@@ -501,7 +521,7 @@ class PharBuilder
             $paths['excludes'] = $this->composerReader->getDevOnlyPackageName();
         }
 
-        $paths["stubs"] = array_map(
+        $paths['stubs'] = array_map(
             /**
              * Get the full path of a file
              *
@@ -511,7 +531,7 @@ class PharBuilder
              */
             function ($file) use ($paths) {
                 $file = str_replace('/./', '/', $file);
-                return $paths['vendor'] . "/" . $file;
+                return $paths['vendor'] . '/' . $file;
             },
             $this->composerReader->getStubFiles()
         );
