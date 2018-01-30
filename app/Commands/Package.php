@@ -132,7 +132,7 @@ class Package extends Base
         $name        = $this->readParamComposerAskName($extraData, $input);
         $outputDir   = $this->readParamComposerAsk($extraData, $input, $output, $baseDir, 'output-dir');
         $includes    = $this->readParamComposerAsk($extraData, $input, $output, $baseDir, 'include');
-        $skipShebang = $this->readParamComposerAsk($extraData, $input, $output, $baseDir, 'skip-shebang');
+        $skipShebang = $this->readParamComposerSkipShebang($extraData, $input);
 
         $builder = $app->getBuilder();
         $builder->setComposer($composerFile);
@@ -240,6 +240,28 @@ class Package extends Base
             }
         }
         return $this->validateIncludeDev($input->getOption('include-dev'));
+    }
+
+    /**
+     * Read the CLI argument for the skip shebang,
+     * if not found read the Composer.json file,
+     * if not provided in composer.json, choose "false"
+     *
+     * @param array          $composerData The composer.json extra data content
+     * @param InputInterface $input        The CLI input interface (reading user input)
+     *
+     * @return bool The skip-shebang flag
+     */
+    private function readParamComposerSkipShebang($composerData, InputInterface $input)
+    {
+        if (null == $input->getOption('skip-shebang')) {
+            if (array_key_exists('skip-shebang', $composerData)) {
+                $input->setOption('skip-shebang', $composerData['skip-shebang']);
+            } else {
+                $input->setOption('skip-shebang', false);
+            }
+        }
+        return $this->validateSkipShebang($input->getOption('skip-shebang'));
     }
 
     /**
