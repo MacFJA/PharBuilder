@@ -206,14 +206,14 @@ class Composer
      *
      * @param string[] $packageNames List of the packages name
      *
-     * @return void
+     * @return string|null
      *
      * @throws \RuntimeException
      */
-    public function removeFilesAutoloadFor($packageNames)
+    public function getRemoveFilesAutoloadFor($packageNames)
     {
         if (0 === count($packageNames)) {
-            return;
+            return null;
         }
 
         $autoloadFile = $this->getVendorDir() . DIRECTORY_SEPARATOR .
@@ -230,7 +230,7 @@ class Composer
             }
         }
 
-        file_put_contents($autoloadFile, $content);
+        return $content;
     }
 
     /**
