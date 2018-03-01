@@ -59,7 +59,14 @@ class Composer
     {
         $composer = json_decode(file_get_contents($this->composerJsonPath), true);
 
-        $paths = $this->readAutoload($composer['autoload']);
+        if (!$composer) {
+            return array();
+        }
+
+        $paths = array();
+        if (array_key_exists('autoload', $composer)) {
+            $paths = $this->readAutoload($composer['autoload']);
+        }
 
         if ($includeDev && array_key_exists('autoload-dev', $composer)) {
             $paths = array_merge(
@@ -190,6 +197,10 @@ class Composer
     {
         $composer = json_decode(file_get_contents($this->composerJsonPath), true);
 
+        if (!$composer) {
+            return 'vendor';
+        }
+
         if (!array_key_exists('config', $composer)) {
             return 'vendor';
         }
@@ -245,6 +256,11 @@ class Composer
          * All information we need is store in it.
          */
         $parsed = json_decode(file_get_contents($this->composerJsonPath), true);
+
+        if (!$parsed) {
+            return array();
+        }
+
         // check if our info is here
         if (!array_key_exists('extra', $parsed)) {
             $parsed['extra'] = array('phar-builder' => array());
