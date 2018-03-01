@@ -381,8 +381,12 @@ class PharBuilder
             $this->addDir($dir);
         }
         // Add the composer vendor dir
-        $this->composerReader->removeFilesAutoloadFor($composerInfo['excludes']);
+        $filesAutoload = $this->composerReader->getRemoveFilesAutoloadFor($composerInfo['excludes']);
         $this->addDir($composerInfo['vendor'], $composerInfo['excludes']);
+        if ($filesAutoload !== null) {
+            $this->addFakeFile($composerInfo['vendor'] . DIRECTORY_SEPARATOR .
+                'composer' . DIRECTORY_SEPARATOR . 'autoload_files.php', $filesAutoload);
+        }
         $this->addFile('composer.json');
         $this->addFile('composer.lock');
         $this->addStub();
@@ -524,12 +528,12 @@ class PharBuilder
      *
      * @return void
      */
-    protected function addFakeFile($filePath)
+    protected function addFakeFile($filePath, $content = '')
     {
         $this->ioStyle->write("\r\033[2K" . ' > ' . $filePath);
 
         //Add the file
-        $this->phar->addFromString($filePath, "");
+        $this->phar->addFromString($filePath, $content);
     }
 
     /**
@@ -596,6 +600,7 @@ class PharBuilder
         }
 
         $paths["stubs"] = array_map(function ($file) use ($paths) {
+            $file = str_replace('/./', '/', $file);
             return $paths['vendor'] . "/" . $file;
         }, $this->composerReader->getStubFiles());
 
