@@ -108,6 +108,18 @@ The command `build` doesn't take any argument. All options will be ask through t
  - https://github.com/clue/phar-composer
  - https://github.com/box-project/box2
  - https://github.com/IcecaveStudios/near
+ - https://github.com/Modularr/Phar
+ - https://github.com/kos33rd/pharaon
+ - https://github.com/brad-jones/pharbuilder
+ - https://github.com/index0h/yii2-phar
+ - https://github.com/keradus/PharBuilder
+ - https://github.com/JeroenDeDauw/PharBuilder
+ - https://github.com/theseer/Autoload
+ - https://github.com/crodas/Phar-Builder
+ - https://github.com/oleics/php-ac-build-phar
+ - https://github.com/mvccore/packager
+ - https://github.com/box-project/box2-lib
+ - https://github.com/box-project/box3
 
 ## License
 
