@@ -7,6 +7,7 @@ use MacFJA\PharBuilder\Utils\Composer;
 use Rych\ByteSize\ByteSize;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Finder\Finder;
+use Symfony\Component\Finder\SplFileInfo;
 use webignition\ReadableDuration\ReadableDuration;
 
 /**
@@ -366,20 +367,12 @@ class PharBuilder
             if (!is_array($dir)) {
                 $dir = array($dir);
             }
-            foreach ($dir as $subDir) {
-                $this->addDir($subDir);
-            }
+            array_walk($dir, array($this, 'addDir'));
         }
-        foreach ($composerInfo['files'] as $file) {
-            $this->addFile($file);
-        }
-        foreach ($composerInfo['stubs'] as $file) {
-            $this->addFakeFile($file);
-        }
+        array_walk($composerInfo['files'], array($this, 'addFile'));
+        array_walk($composerInfo['stubs'], array($this, 'addFakeFile'));
         // Add included directories
-        foreach ($this->includes as $dir) {
-            $this->addDir($dir);
-        }
+        array_walk($this->includes, array($this, 'addDir'));
         // Add the composer vendor dir
         $filesAutoload = $this->composerReader->getRemoveFilesAutoloadFor($composerInfo['excludes']);
         $this->addDir($composerInfo['vendor'], $composerInfo['excludes']);
@@ -457,6 +450,13 @@ class PharBuilder
             ->notPath('/.*phpunit\/.*/')//Remove Unit test
             ->notPath('/.*test(s)?\/.*/')//Remove Unit test
             ->exclude($excludes)
+            ->filter(function (SplFileInfo $fileInfo) {
+                return !(
+                    is_link($fileInfo->getPath())
+                    && !file_exists($fileInfo->getPath())
+                    || $fileInfo->getRealPath() === false
+                );
+            })
             ->in($directory);
         foreach ($files as $file) {
             /**
@@ -525,6 +525,7 @@ class PharBuilder
      * Add a fake file (stub) to the Phar
      *
      * @param string $filePath The path MUST be relative to the composer.json parent directory
+     * @param string $content  The content of the fake file
      *
      * @return void
      */
