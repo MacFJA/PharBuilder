@@ -20,6 +20,11 @@ use webignition\ReadableDuration\ReadableDuration;
 class PharBuilder
 {
     /**
+     * Character list of directory separators
+     */
+    const DIRECTORY_SEPARATORS = '/\\';
+
+    /**
      * The Phar object
      *
      * @var \Phar
@@ -122,7 +127,7 @@ class PharBuilder
      */
     public function setOutputDir($directory)
     {
-        $this->pharName = rtrim($directory, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . basename($this->pharName);
+        $this->pharName = rtrim($directory, self::DIRECTORY_SEPARATORS) . DIRECTORY_SEPARATOR . basename($this->pharName);
     }
 
     /**
@@ -441,7 +446,7 @@ class PharBuilder
             $exclude = rtrim($exclude, DIRECTORY_SEPARATOR);
         }
 
-        $directory = rtrim($directory, DIRECTORY_SEPARATOR);
+        $directory = rtrim($directory, self::DIRECTORY_SEPARATORS);
         $files     = Finder::create()->files()
             ->ignoreVCS(true)//Remove VCS
             ->ignoreDotFiles(true)//Remove system hidden file
@@ -464,7 +469,7 @@ class PharBuilder
              *
              * @var \Symfony\Component\Finder\SplFileInfo $file
              */
-            $this->addFile(rtrim($directory, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $file->getRelativePathname());
+            $this->addFile(rtrim($directory, self::DIRECTORY_SEPARATORS) . DIRECTORY_SEPARATOR . $file->getRelativePathname());
         }
     }
 
@@ -500,7 +505,7 @@ class PharBuilder
 
         if (0 === strpos($path, getcwd())) {
             $path = substr($path, strlen(getcwd()));
-            $path = ltrim($path, DIRECTORY_SEPARATOR);
+            $path = ltrim($path, self::DIRECTORY_SEPARATORS);
         }
 
         return $path;
