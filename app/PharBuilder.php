@@ -496,12 +496,32 @@ class PharBuilder
      */
     protected function makePathRelative($path)
     {
+        $path = $this->processDotNotatedPath($path);
+
         if (0 === strpos($path, getcwd())) {
             $path = substr($path, strlen(getcwd()));
             $path = ltrim($path, DIRECTORY_SEPARATOR);
         }
 
         return $path;
+    }
+
+    /**
+     * Process dot notated relative paths
+     *
+     * @param string $path The path to resolve when it's a dot notated path (e.g. ./entry-file.php)
+     *
+     * @return string
+     */
+    protected function processDotNotatedPath($path)
+    {
+        if (preg_match('~^\.\.?[\\\/]~', $path) !== 1) {
+            return $path;
+        }
+
+        $resolvedPath = realpath(getcwd() . '/' . $path);
+
+        return $resolvedPath;
     }
 
     /**
