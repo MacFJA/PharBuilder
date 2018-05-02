@@ -538,6 +538,9 @@ class PharBuilder
      */
     protected function addFile($filePath)
     {
+        //Clean-up path: Remove multiple directory separator
+        $filePath = preg_replace('#[\\/]{2,}#', '/', $filePath);
+
         $this->ioStyle->write("\r\033[2K" . ' > ' . $filePath);
 
         //Add the file
@@ -556,6 +559,9 @@ class PharBuilder
      */
     protected function addFakeFile($filePath, $content = '')
     {
+        //Clean-up path: Remove multiple directory separator
+        $filePath = preg_replace('#[\\/]{2,}#', '/', $filePath);
+
         $this->ioStyle->write("\r\033[2K" . ' > ' . $filePath);
 
         //Add the file
