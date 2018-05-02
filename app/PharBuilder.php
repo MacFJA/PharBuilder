@@ -443,7 +443,7 @@ class PharBuilder
         $files     = Finder::create()->files()
             ->ignoreVCS(true)//Remove VCS
             ->ignoreDotFiles(true)//Remove system hidden file
-            ->notName('composer.*')//Remove composer configuration
+            ->notName('composer.lock')//Remove composer configuration
             ->notName('*~')//Remove backup file
             ->notName('*.back')//Remove backup file
             ->notName('*.swp')//Remove backup file
