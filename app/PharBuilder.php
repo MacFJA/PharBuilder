@@ -373,12 +373,18 @@ class PharBuilder
             if (!is_array($dir)) {
                 $dir = array($dir);
             }
-            array_walk($dir, array($this, 'addDir'));
+            array_walk($dir, function ($value) {
+                $this->addDir($value);
+            });
         }
         array_walk($composerInfo['files'], array($this, 'addFile'));
-        array_walk($composerInfo['stubs'], array($this, 'addFakeFile'));
+        array_walk($composerInfo['stubs'], function ($value) {
+            $this->addFakeFile($value);
+        });
         // Add included directories
-        array_walk($this->includes, array($this, 'addDir'));
+        array_walk($this->includes, function ($value) {
+            $this->addDir($value);
+        });
         // Add the composer vendor dir
         $filesAutoload = $this->composerReader->getRemoveFilesAutoloadFor($composerInfo['excludes']);
         $this->addDir($composerInfo['vendor'], $composerInfo['excludes']);
