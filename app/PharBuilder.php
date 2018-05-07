@@ -128,7 +128,8 @@ class PharBuilder
      */
     public function setOutputDir($directory)
     {
-        $this->pharName = rtrim($directory, self::DIRECTORY_SEPARATORS) . DIRECTORY_SEPARATOR . basename($this->pharName);
+        $this->pharName = rtrim($directory, self::DIRECTORY_SEPARATORS) .
+            DIRECTORY_SEPARATOR . basename($this->pharName);
     }
 
     /**
@@ -469,7 +470,9 @@ class PharBuilder
              *
              * @var \Symfony\Component\Finder\SplFileInfo $file
              */
-            $this->addFile(rtrim($directory, self::DIRECTORY_SEPARATORS) . DIRECTORY_SEPARATOR . $file->getRelativePathname());
+            $this->addFile(
+                rtrim($directory, self::DIRECTORY_SEPARATORS) . DIRECTORY_SEPARATOR . $file->getRelativePathname()
+            );
         }
     }
 
