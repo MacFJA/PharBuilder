@@ -37,8 +37,10 @@ class PharBuilder
      * The Phar object
      *
      * @var \Phar
+     *
+     * @psalm-suppress PropertyNotSetInConstructor
      */
-    protected $phar = null;
+    protected $phar;
     /**
      * The path of the entry point of the application
      *
@@ -55,8 +57,10 @@ class PharBuilder
      * The composer file reader
      *
      * @var Composer
+     *
+     * @psalm-suppress PropertyNotSetInConstructor
      */
-    protected $composerReader = null;
+    protected $composerReader;
 
     /**
      * List of equivalence for compression
@@ -96,10 +100,8 @@ class PharBuilder
      */
     public function getOutputDir()
     {
-        return rtrim($this->config->getValue('output-dir'), DIRECTORY_SEPARATOR);
+        return rtrim($this->config->getValue('output-dir'), self::DIRECTORY_SEPARATORS);
     }
-
-
 
     /**
      * Get the path of the stub (entry-point)
@@ -111,7 +113,6 @@ class PharBuilder
         return $this->config->getValue('entry-point');
     }
 
-
     /**
      * Get the compression name.
      * The compression type (see `$compressionList`)
@@ -122,7 +123,6 @@ class PharBuilder
     {
         return array_search($this->config->getValue('compression'), $this->compressionList, true);
     }
-
 
     /**
      * Get the list of path that will be included
@@ -144,7 +144,6 @@ class PharBuilder
     {
         return $this->config->getValue('include-dev');
     }
-
 
     /**
      * Set the path the composer.json file
@@ -240,9 +239,19 @@ class PharBuilder
             if (!is_array($dir)) {
                 $dir = array($dir);
             }
-            array_walk($dir, function ($value) {
-                $this->addDir($value);
-            });
+            array_walk(
+                $dir,
+                /**
+                 * Add directories to phar
+                 *
+                 * @param string $value
+                 *
+                 * @return void
+                 */
+                function ($value) {
+                    $this->addDir($value);
+                }
+            );
         }
         $this->addPathToPhar($composerInfo['files'], 'addFile');
         $this->addPathToPhar($composerInfo['stubs'], 'addFakeFile');
@@ -349,13 +358,21 @@ class PharBuilder
             ->notPath('/.*phpunit\/.*/')//Remove Unit test
             ->notPath('/(^|\/)test(s)?\/.*/i')//Remove Unit test
             ->exclude($excludes)
-            ->filter(function (SplFileInfo $fileInfo) {
-                return !(
-                    is_link($fileInfo->getPath())
-                    && !file_exists($fileInfo->getPath())
-                    || $fileInfo->getRealPath() === false
-                );
-            })
+            ->filter(
+                /**
+                 * Remove broken symlinks
+                 *
+                 * @param $fileInfo
+                 *
+                 * @return bool
+                 */
+                function (SplFileInfo $fileInfo) {
+                    return !(
+                        (is_link($fileInfo->getPath()) && !file_exists($fileInfo->getPath()))
+                        || $fileInfo->getRealPath() === false
+                    );
+                }
+            )
             ->in($directory);
         foreach ($files as $file) {
             /**

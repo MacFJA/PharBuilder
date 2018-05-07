@@ -45,8 +45,8 @@ class ComposerAwareEvent extends Event
     /**
      * Create a new event instance.
      *
-     * @param string   $name     The new event name
-     * @param Composer $composer The composer.json reader instance
+     * @param string     $name     The new event name
+     * @param mixed|null $composer The composer.json reader instance
      *
      * @return static
      *
@@ -54,7 +54,7 @@ class ComposerAwareEvent extends Event
      */
     public static function named($name, $composer = null)
     {
-        if (null === $composer) {
+        if (!($composer instanceof Composer)) {
             throw new \InvalidArgumentException('The parameter $composer MUST be defined');
         }
         return new static($name, $composer);

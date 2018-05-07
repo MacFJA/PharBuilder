@@ -40,8 +40,10 @@ class Application extends Base
      * The phar builder
      *
      * @var PharBuilder
+     *
+     * @psalm-suppress PropertyNotSetInConstructor
      */
-    protected $builder = null;
+    protected $builder;
     /**
      * The application event manager
      *
@@ -53,8 +55,10 @@ class Application extends Base
      * The configuration factory
      *
      * @var Config
+     *
+     * @psalm-suppress PropertyNotSetInConstructor
      */
-    protected $config = null;
+    protected $config;
 
     /**
      * Get the application PHAR Builder

@@ -44,8 +44,8 @@ class PharAwareEvent extends ComposerAwareEvent
     /**
      * Create a new event instance.
      *
-     * @param string      $name    The new event name
-     * @param PharBuilder $builder The PharBuilder
+     * @param string     $name    The new event name
+     * @param mixed|null $builder The PharBuilder
      *
      * @return static
      *
@@ -53,7 +53,7 @@ class PharAwareEvent extends ComposerAwareEvent
      */
     public static function named($name, $builder = null)
     {
-        if (null === $builder) {
+        if (!($builder instanceof PharBuilder)) {
             throw new \InvalidArgumentException('The parameter $builder MUST be defined');
         }
         return new static($name, $builder);

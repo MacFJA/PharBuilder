@@ -20,8 +20,11 @@ abstract class Base extends Command
      * The Symfony Style Input/Output
      *
      * @var SymfonyStyle
+     *
+     * @psalm-suppress PossiblyNullPropertyAssignmentValue
+     * @psalm-suppress PropertyNotSetInConstructor
      */
-    protected $ioStyle = null;
+    protected $ioStyle;
 
     /**
      * Set the Symfony Inout/Output style
