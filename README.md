@@ -119,7 +119,7 @@ The command `build` doesn't take any argument. All options will be ask through t
  - https://github.com/oleics/php-ac-build-phar
  - https://github.com/mvccore/packager
  - https://github.com/box-project/box2-lib
- - https://github.com/box-project/box3
+ - https://github.com/humbug/box
 
 ## License
 
