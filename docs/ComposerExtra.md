@@ -14,8 +14,11 @@ All configurations are saved in the [`extra`](https://getcomposer.org/doc/04-sch
 1. [include-dev](#include-dev)
 1. [skip-shebang](#skip-shebang)
 1. [events](#events)
-  1. [build.before](#build.before)
-  1. [build.after](#build.after)
+  1. [command.build.start](#command.build.start)
+  1. [command.build.end](#command.build.end)
+  1. [command.package.start](#command.package.start)
+  1. [command.package.end](#command.package.end)
+  1. [unix.interrupt](#unix.interrupt)
 
 ### compression
 
@@ -77,7 +80,7 @@ This event is triggered in the command `build` after asking all questions to the
 
 _Working directory: `composer.json` directory_
 
-#### command.build.after
+#### command.build.end
 
 This event is triggered in the command `build` after the PHAR is created.
 
@@ -89,7 +92,7 @@ This event is triggered in the command `package` just after getting the `compose
 
 _Working directory: `composer.json` directory_
 
-#### command.build.after
+#### command.package.end
 
 This event is triggered in the command `package` after the PHAR is created.
 
@@ -121,8 +124,8 @@ Here a full-featured `phar-builder` configuration
         "include-dev": false,
         "skip-shebang": false,
         "events": {
-            "command.package.before" : "git describe --tags > bin/version.txt"
-            "command.package.after": [
+            "command.package.start" : "git describe --tags > bin/version.txt"
+            "command.package.end": [
                 "rm bin/version.txt",
                 "chmod +x ../application.phar"
             ]
