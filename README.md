@@ -81,8 +81,8 @@ Help:
    │          "include": ["bin","js","css"],
    │          "include-dev": false,
    │          "events": {
-   │              "build.before" : "git describe --tags > bin/version.txt",
-   │              "build.after": [
+   │              "command.build.start" : "git describe --tags > bin/version.txt",
+   │              "command.build.end": [
    │                  "rm bin/version.txt",
    │                  "chmod +x ../application.phar"
    │              ]
