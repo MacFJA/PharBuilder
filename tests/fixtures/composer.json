@@ -1,0 +1,34 @@
+{
+    "name": "macfja/polyfill-registry",
+    "description": "List of all (most of) polyfills for PHP",
+    "keywords": ["polyfill", "polyfills", "extension", "extensions", "registry"],
+    "homepage": "https://github.com/MacFJA/polyfill-registry",
+    "support": {
+        "issues": "https://github.com/MacFJA/polyfill-registry/issues",
+        "source": "https://github.com/MacFJA/polyfill-registry",
+        "docs": "https://github.com/MacFJA/polyfill-registry"
+    },
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "MacFJA"
+        }
+    ],
+    "require-dev": {
+        "phpunit/phpunit": "^6.5",
+        "edgedesign/phpqa": "^1.18",
+        "phpstan/phpstan": "^0.9.2",
+        "vimeo/psalm": "^1.1",
+        "jakub-onderka/php-parallel-lint": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "MacFJA\\PolyFillRegistry\\": ["lib/"]
+        }
+    },
+    "require": {
+        "php": "^5.3 || ~7"
+    },
+    "bin": ["root/a-file"]
+}

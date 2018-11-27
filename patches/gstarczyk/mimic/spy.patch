@@ -1,0 +1,130 @@
+diff --git a/README.md b/README.md
+index 100d8d4..1428500 100644
+--- a/README.md
++++ b/README.md
+@@ -269,6 +269,15 @@ tool on captured data.
+     ];
+     Assert::assertEquals($expectedData, $capturedData);
+ 
++### spy a method
++
++Sometime you need to the original method of the mock to be call.
++
++    Mimic:spy($mock, 'someMethod');
++    $mock->someMethod('a', 'b');
++    // The method 'someMethod' of the original class will be call,
++    // The invocation is still be counted
++
+ ## examples
+ 
+ Let's assume that we have classes:
+diff --git a/src/Mimic.php b/src/Mimic.php
+index ede4c1b..0b42d8c 100644
+--- a/src/Mimic.php
++++ b/src/Mimic.php
+@@ -57,6 +57,32 @@ class Mimic
+ 
+     /**
+      * @param object $mock
++     * @param string $method
++     * @return void
++     */
++    static public function spy($mock, $method)
++    {
++        $behavior = new BehaviourBuilderSelector(self::getRegistry()->getStub($mock));
++        $reflection = new \ReflectionClass($mock);
++        $parentClass = $reflection->getParentClass();
++
++        if($parentClass == null) {
++            throw new \InvalidArgumentException(sprintf('Cannot spy an interface [interfaceName=%s]', implode(', ', $reflection->getInterfaceNames())));
++        }
++
++        $parent = $parentClass->getName();
++
++        if (!is_callable([$parent, $method])) {
++            throw new \InvalidArgumentException(sprintf('Cannot spy an abstract or invalid method [methodName=%s::%s]', $parent, $method));
++        }
++
++        $behavior->invoke($method)->withAnyArguments()->willReturnCallbackResult(function () use ($parent, $method) {
++            return call_user_func_array([$parent, $method], func_get_args());
++        });
++    }
++
++    /**
++     * @param object $mock
+      * @return VerifierBuilderSelector
+      */
+     static public function verify($mock)
+diff --git a/tests/integration/Fixture/AbstractMock.php b/tests/integration/Fixture/AbstractMock.php
+new file mode 100644
+index 0000000..1970537
+--- /dev/null
++++ b/tests/integration/Fixture/AbstractMock.php
+@@ -0,0 +1,7 @@
++<?php
++namespace Gstarczyk\Mimic\IntegrationTest\Fixture;
++
++abstract class AbstractMock
++{
++    abstract public function methodOne();
++}
+diff --git a/tests/integration/MimicTest.php b/tests/integration/MimicTest.php
+index 2b2bab6..a2a3c39 100644
+--- a/tests/integration/MimicTest.php
++++ b/tests/integration/MimicTest.php
+@@ -1,6 +1,7 @@
+ <?php
+ namespace Gstarczyk\Mimic\IntegrationTest;
+ 
++use Gstarczyk\Mimic\IntegrationTest\Fixture\AbstractMock;
+ use Gstarczyk\Mimic\IntegrationTest\Fixture\InterfaceToMock;
+ use Gstarczyk\Mimic\IntegrationTest\Fixture\Mock1;
+ use Gstarczyk\Mimic\IntegrationTest\Fixture\Mock2;
+@@ -137,6 +138,47 @@ class MimicTest extends \PHPUnit_Framework_TestCase
+ 
+     }
+ 
++    public function testSpy()
++    {
++        /** @var Mock1 $notASpy */
++        $spy = Mimic::mock(Mock1::class);
++        $this->assertNull($spy->publicMethodOne('arg'));
++
++        Mimic::spy($spy, 'publicMethodOne');
++        $this->assertEquals('arg', $spy->publicMethodOne('arg'));
++
++        Mimic::verify($spy)
++            ->method('publicMethodOne')
++            ->withAnyArguments()
++            ->wasCalled(Times::exactly(2));
++
++        try {
++            Mimic::spy($spy, 'methodTwo');
++            $this->fail();
++        } catch (\InvalidArgumentException $e) {
++            $this->assertEquals('Cannot spy an abstract or invalid method [methodName=Gstarczyk\Mimic\IntegrationTest\Fixture\Mock1::methodTwo]', $e->getMessage());
++        }
++
++        /** @var InterfaceToMock $interfaceSpy */
++        $interfaceSpy = Mimic::mock(InterfaceToMock::class);
++
++        try {
++            Mimic::spy($interfaceSpy, 'methodOne');
++            $this->fail();
++        } catch (\InvalidArgumentException $e) {
++            $this->assertEquals('Cannot spy an interface [interfaceName=Gstarczyk\Mimic\IntegrationTest\Fixture\InterfaceToMock]', $e->getMessage());
++        }
++
++        /** @var AbstractMock $abstractClass */
++        $abstractClass = Mimic::mock(AbstractMock::class);
++        try {
++            Mimic::spy($abstractClass, 'methodOne');
++            $this->fail();
++        } catch (\InvalidArgumentException $e) {
++            $this->assertEquals('Cannot spy an abstract or invalid method [methodName=Gstarczyk\Mimic\IntegrationTest\Fixture\AbstractMock::methodOne]', $e->getMessage());
++        }
++    }
++
+     public function testMockInitialization()
+     {
+         $testCase = new TestCaseWithMock();

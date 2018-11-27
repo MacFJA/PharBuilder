@@ -1,0 +1,8 @@
+{
+    "config": {
+        "vendor-dir": "a-directory"
+    },
+    "extra": {
+        "phar-builder": ["this-is-a-test"]
+    }
+}

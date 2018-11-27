@@ -1,0 +1,212 @@
+[
+  {
+    "_project": "Generic",
+    "included": [
+      "bin",
+      "css",
+      "js"
+    ],
+    "excluded": [
+      "/test/",
+      "/tests/",
+      "*/Test/",
+      "*/Tests/",
+      "/github/",
+      "/docker/",
+      "/.git/",
+      "/.github/",
+      "/.circle-ci/",
+      "/build/",
+      "/doc/",
+      "/docs/",
+      "/examples/",
+      "/example/",
+      "*.back",
+      "*.swp",
+      "*~"
+    ]
+  },
+  {
+    "_project": "Cake 2",
+    "included": [
+      "app",
+      "lib",
+      "plugins",
+      "vendors",
+      "index.php"
+    ],
+    "excluded": [
+      "/app/tmp/"
+    ],
+    "entry-point": "app/webroot/index.php"
+  },
+  {
+    "_project": "Cake 3",
+    "included": [
+      "bin",
+      "config",
+      "plugins",
+      "src",
+      "webroot"
+    ],
+    "entry-point": "webroot/index.php"
+  },
+  {
+    "_project": "CodeIgniter 2",
+    "included": [
+      "application",
+      "system"
+    ],
+    "excluded": [
+      "/application/logs/"
+    ],
+    "entry-point": "index.php"
+  },
+  {
+    "_project": "CodeIgniter 3",
+    "included": [
+      "application",
+      "system"
+    ],
+    "excluded": [
+      "/application/logs/"
+    ],
+    "entry-point": "index.php"
+  },
+  {
+    "_project": "Fuel",
+    "included": [
+      "fuel",
+      "public",
+      "oil"
+    ],
+    "entry-point": "public/index.php"
+  },
+  {
+    "_project": "Laravel 4",
+    "included": [
+      "app",
+      "bootstrap",
+      "public",
+      "artisan",
+      "server.php"
+    ],
+    "excluded": [
+      "/app/tests/"
+    ],
+    "entry-point": "public/index.php"
+  },
+  {
+    "_project": "Laravel 5",
+    "included": [
+      "app",
+      "bootstrap",
+      "config",
+      "database",
+      "public",
+      "resources",
+      "routes",
+      "storage",
+      "artisan",
+      "server.php"
+    ],
+    "excluded": [
+      "/storage/logs/"
+    ],
+    "entry-point": "public/index.php"
+  },
+  {
+    "_project": "Nette 2",
+    "included": [
+      "app",
+      "www"
+    ],
+    "excluded": [
+      "/app/logs/",
+      "/app/cache/"
+    ],
+    "entry-point": "www/index.php"
+  },
+  {
+    "_project": "Symfony 2",
+    "included": [
+      "app",
+      "bin",
+      "src",
+      "web"
+    ],
+    "excluded": [
+      "/app/cache/",
+      "/app/logs/"
+    ],
+    "entry-point": "web/index.php"
+  },
+  {
+    "_project": "Symfony 3",
+    "included": [
+      "app",
+      "bin",
+      "src",
+      "web"
+    ],
+    "excluded": [
+      "/tests/",
+      "/var/"
+    ],
+    "entry-point": "web/app.php"
+  },
+  {
+    "_project": "Symfony 4",
+    "included": [
+      "bin",
+      "config",
+      "public",
+      "src",
+      "templates",
+      "translations"
+    ],
+    "excluded": [
+      "/tests/",
+      "/var/log/",
+      "/var/cache/"
+    ],
+    "entry-point": "public/index.php"
+  },
+  {
+    "_project": "Yii 1",
+    "included": [
+      "framework",
+      "requirements"
+    ],
+    "excluded": [
+      "/demos/",
+      "/docs/",
+      "/tests/"
+    ]
+  },
+  {
+    "_project": "Yii 2",
+    "included": [
+      "assets",
+      "commands",
+      "config",
+      "controllers",
+      "mail",
+      "models",
+      "runtime",
+      "views",
+      "web",
+      "widgets",
+      "codeception.yml",
+      "requirements.php",
+      "yii"
+    ],
+    "excluded": [
+      "/config/test.php",
+      "/config/test_db.php",
+      "/vagrant/",
+      "/web/index-test.php"
+    ],
+    "entry-point": "web/index.php"
+  }
+]

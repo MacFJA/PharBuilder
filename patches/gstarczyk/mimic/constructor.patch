@@ -1,0 +1,64 @@
+diff --git a/src/Mimic.php b/src/Mimic.php
+index ede4c1b..53ab72a 100644
+--- a/src/Mimic.php
++++ b/src/Mimic.php
+@@ -65,6 +65,30 @@ class Mimic
+     }
+ 
+     /**
++     * @param $mock
++     * @param $_ $arg1, $arg2, ...
++     */
++    static public function callConstructor($mock, $_)
++    {
++        $reflection = new \ReflectionClass($mock);
++        $parentClass = $reflection->getParentClass();
++
++        if($parentClass === null) {
++            throw new \InvalidArgumentException(sprintf('Cannot call constructor of an interface [interfaceName=%s]', implode(', ', $reflection->getInterfaceNames())));
++        }
++
++        $parent = $parentClass->getName();
++
++        if ($parentClass->getConstructor()->isAbstract()) {
++            throw new \InvalidArgumentException(sprintf('Cannot call an abstract constructor [class=%s]', $parent));
++        }
++
++        $constructorArgs = func_get_args();
++        array_shift($constructorArgs);
++        $parentClass->getConstructor()->invokeArgs($mock, $constructorArgs);
++    }
++
++    /**
+      * Automatically create mocks for annotated test case properties
+      * @param object $testCase
+      * @param string | null $pathToTestCaseFile
+diff --git a/tests/integration/MimicTest.php b/tests/integration/MimicTest.php
+index 2b2bab6..9975a11 100644
+--- a/tests/integration/MimicTest.php
++++ b/tests/integration/MimicTest.php
+@@ -2,6 +2,7 @@
+ namespace Gstarczyk\Mimic\IntegrationTest;
+ 
+ use Gstarczyk\Mimic\IntegrationTest\Fixture\InterfaceToMock;
++use Gstarczyk\Mimic\IntegrationTest\Fixture\InvalidTargetObject;
+ use Gstarczyk\Mimic\IntegrationTest\Fixture\Mock1;
+ use Gstarczyk\Mimic\IntegrationTest\Fixture\Mock2;
+ use Gstarczyk\Mimic\IntegrationTest\Fixture\StaticMethods;
+@@ -179,4 +180,16 @@ class MimicTest extends \PHPUnit_Framework_TestCase
+     {
+         Mimic::mock(StaticMethods::class);
+     }
++
++    public function testCallConstructor()
++    {
++        /** @var InvalidTargetObject $mock */
++        $mock = Mimic::mock(InvalidTargetObject::class);
++
++        $this->assertNull($mock->prop1);
++
++        Mimic::callConstructor($mock, 'foobar');
++
++        $this->assertEquals('foobar', $mock->prop1);
++    }
+ }

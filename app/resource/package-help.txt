@@ -1,5 +1,0 @@
-Create a Phar file of a composer project.
-The command can get values from CLI argument, by reading composer file or by ask (in this order)
-If an option is both defined in the composer file and in the CLI argument, the CLI argument will be used.
-Example of a composer configuration:
-

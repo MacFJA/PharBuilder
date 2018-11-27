@@ -1,9 +1,8 @@
 # Created by .ignore support plugin (hsz.mobi)
-phar-builder.phar
-phar-builder.phar.asc
-
 ### Composer template
-vendor/
+composer.phar
+/vendor/
 
-### JetBrains template
-.idea/
+phar-builder.phar
+infection-log.txt
+/build/

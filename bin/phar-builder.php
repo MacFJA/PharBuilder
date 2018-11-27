@@ -1,7 +1,5 @@
 <?php
 
-declare(ticks=1);
-
 use MacFJA\PharBuilder\Application;
 
 $autoloaders = array(

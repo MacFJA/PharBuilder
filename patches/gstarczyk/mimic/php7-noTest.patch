@@ -1,0 +1,374 @@
+diff --git a/src/Mimic.php b/src/Mimic.php
+index ede4c1b..34a416a 100644
+--- a/src/Mimic.php
++++ b/src/Mimic.php
+@@ -57,6 +57,33 @@ class Mimic
+ 
+     /**
+      * @param object $mock
++     * @param string $method
++     * @return void
++     * @throws \ReflectionException
++     */
++    static public function spy($mock, $method)
++    {
++        $behavior = new BehaviourBuilderSelector(self::getRegistry()->getStub($mock));
++        $reflection = new \ReflectionClass($mock);
++        $parentClass = $reflection->getParentClass();
++
++        if($parentClass == null) {
++            throw new \InvalidArgumentException(sprintf('Cannot spy an interface [interfaceName=%s]', implode(', ', $reflection->getInterfaceNames())));
++        }
++
++        $parent = $parentClass->getName();
++
++        if (!is_callable([$parent, $method])) {
++            throw new \InvalidArgumentException(sprintf('Cannot spy an abstract or invalid method [methodName=%s::%s]', $parent, $method));
++        }
++
++        $behavior->invoke($method)->withAnyArguments()->willReturnCallbackResult(function () use ($parent, $method) {
++            return call_user_func_array([$parent, $method], func_get_args());
++        });
++    }
++
++    /**
++     * @param object $mock
+      * @return VerifierBuilderSelector
+      */
+     static public function verify($mock)
+diff --git a/src/Mock/ClassDefinitionFactory.php b/src/Mock/ClassDefinitionFactory.php
+index 74a3fcf..9eff18c 100644
+--- a/src/Mock/ClassDefinitionFactory.php
++++ b/src/Mock/ClassDefinitionFactory.php
+@@ -69,10 +69,22 @@ class ClassDefinitionFactory
+         $definition = new MethodDefinition();
+         $definition->setArguments($this->createArgumentsList($method));
+         $definition->setMethodName($method->getShortName());
++
++        if (method_exists($method, 'hasReturnType') && $method->hasReturnType()) {
++            $returnType = ($method->getReturnType()->allowsNull() ? '?' : '') . ($method->getReturnType()->isBuiltin() ? '' : '\\') .$method->getReturnType()->getName();
++            $definition->setReturnType($returnType);
++        }
++
+         $definition->setInstructions([
+             'return $this->__invocationHandler->handleInvocation(__FUNCTION__, func_get_args())',
+         ]);
+ 
++        if ($definition->getReturnType() === 'void') {
++            $definition->setInstructions([
++                '$this->__invocationHandler->handleInvocation(__FUNCTION__, func_get_args())',
++            ]);
++        }
++
+         return $definition;
+     }
+ 
+diff --git a/src/Mock/MethodArgument/ArgumentDefinition.php b/src/Mock/MethodArgument/ArgumentDefinition.php
+index 34deec6..929aff4 100644
+--- a/src/Mock/MethodArgument/ArgumentDefinition.php
++++ b/src/Mock/MethodArgument/ArgumentDefinition.php
+@@ -10,6 +10,9 @@ abstract class ArgumentDefinition
+     private $optional = false;
+ 
+     /** @var bool */
++    private $allowNull = false;
++
++    /** @var bool */
+     private $passedByReference = false;
+ 
+     /**
+@@ -67,6 +70,21 @@ abstract class ArgumentDefinition
+         $this->passedByReference = false;
+     }
+ 
++    public function isNullAllowed()
++    {
++        return $this->allowNull;
++    }
++
++    public function makeNullAllowed()
++    {
++        $this->allowNull = true;
++    }
++
++    public function makeNullNotAllowed()
++    {
++        $this->allowNull = false;
++    }
++
+     /**
+      * @return string
+      */
+diff --git a/src/Mock/MethodArgument/ArrayArgumentDefinition.php b/src/Mock/MethodArgument/ArrayArgumentDefinition.php
+index 195b402..929fb9e 100644
+--- a/src/Mock/MethodArgument/ArrayArgumentDefinition.php
++++ b/src/Mock/MethodArgument/ArrayArgumentDefinition.php
+@@ -27,7 +27,8 @@ class ArrayArgumentDefinition extends ArgumentDefinition implements DefaultValue
+      */
+     public function toCode()
+     {
+-        $result = sprintf('array %s$%s',
++        $result = sprintf('%sarray %s$%s',
++            ($this->isNullAllowed() ? '?' : ''),
+             ($this->isPassedByReference() ? '&' : ''),
+             $this->getName()
+         );
+diff --git a/src/Mock/MethodArgument/BuiltInArgumentDefinition.php b/src/Mock/MethodArgument/BuiltInArgumentDefinition.php
+new file mode 100644
+index 0000000..8f3665e
+--- /dev/null
++++ b/src/Mock/MethodArgument/BuiltInArgumentDefinition.php
+@@ -0,0 +1,40 @@
++<?php
++namespace Gstarczyk\Mimic\Mock\MethodArgument;
++
++class BuiltInArgumentDefinition extends VariantArgumentDefinition
++{
++    /** @var  string */
++    private $type;
++
++    /**
++     * @param string $name
++     * @param string $type
++     */
++    public function __construct($name, $type)
++    {
++        parent::__construct($name);
++        $this->type = $type;
++    }
++
++    /**
++     * @return string
++     */
++    public function getType()
++    {
++        return $this->type;
++    }
++
++    /**
++     * @return string
++     */
++    public function toCode()
++    {
++        $code = sprintf('%s%s %s',
++            ($this->isNullAllowed() ? '?' : ''),
++            $this->type,
++            parent::toCode()
++        );
++
++        return $code;
++    }
++}
+\ No newline at end of file
+diff --git a/src/Mock/MethodArgument/ObjectArgumentDefinition.php b/src/Mock/MethodArgument/ObjectArgumentDefinition.php
+index 1a54fff..37a0ad2 100644
+--- a/src/Mock/MethodArgument/ObjectArgumentDefinition.php
++++ b/src/Mock/MethodArgument/ObjectArgumentDefinition.php
+@@ -29,7 +29,8 @@ class ObjectArgumentDefinition extends ArgumentDefinition
+      */
+     public function toCode()
+     {
+-        $code = sprintf('\\%s %s$%s',
++        $code = sprintf('%s\\%s %s$%s',
++            ($this->isNullAllowed() ? '?' : ''),
+             $this->className,
+             ($this->isPassedByReference() ? '&' : ''),
+             $this->getName()
+diff --git a/src/Mock/MethodArgumentFactory.php b/src/Mock/MethodArgumentFactory.php
+index c717229..965fb3b 100644
+--- a/src/Mock/MethodArgumentFactory.php
++++ b/src/Mock/MethodArgumentFactory.php
+@@ -2,6 +2,7 @@
+ namespace Gstarczyk\Mimic\Mock;
+ 
+ use Gstarczyk\Mimic\Mock\MethodArgument\ArrayArgumentDefinition;
++use Gstarczyk\Mimic\Mock\MethodArgument\BuiltInArgumentDefinition;
+ use Gstarczyk\Mimic\Mock\MethodArgument\DefaultValueAware;
+ use Gstarczyk\Mimic\Mock\MethodArgument\ObjectArgumentDefinition;
+ use Gstarczyk\Mimic\Mock\MethodArgument\VariantArgumentDefinition;
+@@ -16,6 +17,8 @@ class MethodArgumentFactory
+             $argument = new ArrayArgumentDefinition($parameter->getName());
+         } elseif ($className = $this->getClassName($parameter)) {
+             $argument = new ObjectArgumentDefinition($parameter->getName(), $className);
++        } elseif (method_exists($parameter, 'getType') && $parameter->getType() !== null) {
++            $argument = new BuiltInArgumentDefinition($parameter->getName(), $parameter->getType());
+         } else {
+             $argument = new VariantArgumentDefinition($parameter->getName());
+         }
+@@ -30,6 +33,9 @@ class MethodArgumentFactory
+         if ($parameter->isPassedByReference()) {
+             $argument->makePassedByReference();
+         }
++        if (method_exists($parameter, 'allowsNull') && $parameter->allowsNull() && !$parameter->isOptional()) {
++            $argument->makeNullAllowed();
++        }
+ 
+         return $argument;
+     }
+diff --git a/src/Mock/MethodDefinition.php b/src/Mock/MethodDefinition.php
+index 582c054..ebb2062 100644
+--- a/src/Mock/MethodDefinition.php
++++ b/src/Mock/MethodDefinition.php
+@@ -14,6 +14,9 @@ class MethodDefinition
+     /** @var array */
+     private $instructions = [];
+ 
++    /** @var string */
++    private $returnType;
++
+     /**
+      * @return string
+      */
+@@ -87,9 +90,13 @@ class MethodDefinition
+         foreach ($this->arguments as $argument) {
+             $arguments[] = $argument->toCode();
+         }
+-        $code = sprintf('public function %s(%s)',
++
++        $returnType = $this->returnType !== null ? ': '.$this->returnType : '';
++
++        $code = sprintf('public function %s(%s)%s',
+                 $this->methodName,
+-                implode(', ', $arguments)) . PHP_EOL;
++                implode(', ', $arguments),
++                $returnType) . PHP_EOL;
+         $code .= '{' . PHP_EOL;
+         foreach ($this->instructions as $instruction) {
+             $code .= $instruction . ';' . PHP_EOL;
+@@ -98,4 +105,17 @@ class MethodDefinition
+ 
+         return $code;
+     }
++
++    public function setReturnType($type = null)
++    {
++        $this->returnType = $type;
++    }
++
++    /**
++     * @return string|null
++     */
++    public function getReturnType()
++    {
++        return $this->returnType;
++    }
+ }
+\ No newline at end of file
+diff --git a/tests/integration/Fixture/ClassWithReturnType7.php b/tests/integration/Fixture/ClassWithReturnType7.php
+new file mode 100644
+index 0000000..b80b82f
+--- /dev/null
++++ b/tests/integration/Fixture/ClassWithReturnType7.php
+@@ -0,0 +1,21 @@
++<?php
++namespace Gstarczyk\Mimic\IntegrationTest\Fixture;
++
++
++class ClassWithReturnType7
++{
++    public function methodWithPhp7Return($arg): string
++    {
++        return $arg;
++    }
++
++    public function methodWithPhp7Parametric(string $arg): string
++    {
++        return $arg;
++    }
++
++    public function methodWithPhp7ObjectReturn(): ?Mock2
++    {
++        return null;
++    }
++}
+diff --git a/tests/integration/Fixture/ClassWithReturnType71.php b/tests/integration/Fixture/ClassWithReturnType71.php
+new file mode 100644
+index 0000000..c6482a8
+--- /dev/null
++++ b/tests/integration/Fixture/ClassWithReturnType71.php
+@@ -0,0 +1,20 @@
++<?php
++namespace Gstarczyk\Mimic\IntegrationTest\Fixture;
++
++
++class ClassWithReturnType71
++{
++    public function methodWithPhp71NullableReturn($arg): ?string
++    {
++        return $arg;
++    }
++
++    public function methodWithPhp71VoidReturn(): void
++    {
++        return;
++    }
++    public function methodWithPhp71NullableParametric(?string $arg): ?string
++    {
++        return $arg;
++    }
++}
+diff --git a/tests/unit/Mock/MethodDefinitionTest.php b/tests/unit/Mock/MethodDefinitionTest.php
+index 39fc275..82c1274 100644
+--- a/tests/unit/Mock/MethodDefinitionTest.php
++++ b/tests/unit/Mock/MethodDefinitionTest.php
+@@ -50,4 +50,60 @@ class MethodDefinitionTest extends \PHPUnit_Framework_TestCase
+ 
+         Assert::assertEquals($expected, $definition->toCode());
+     }
++
++    public function testToCodeProduceTextRepresentationForPHP7()
++    {
++        $this->arg1->expects($this->any())->method('toCode')->willReturn('$arg1');
++        $this->arg2->expects($this->any())->method('toCode')->willReturn('$arg2');
++
++        $definition = new MethodDefinition();
++        $definition->setMethodName('someMethod');
++        $definition->setInstructions([
++            'instruction 1',
++            'instruction 2',
++            'instruction 3',
++        ]);
++        $definition->setArguments([
++            $this->arg1,
++            $this->arg2,
++        ]);
++        $definition->setReturnType('string');
++
++        $expected = 'public function someMethod($arg1, $arg2): string' . PHP_EOL
++            . '{' . PHP_EOL
++            . 'instruction 1;' . PHP_EOL
++            . 'instruction 2;' . PHP_EOL
++            . 'instruction 3;' . PHP_EOL
++            . '}';
++
++        Assert::assertEquals($expected, $definition->toCode());
++    }
++
++    public function testToCodeProduceTextRepresentationForPHP71()
++    {
++        $this->arg1->expects($this->any())->method('toCode')->willReturn('$arg1');
++        $this->arg2->expects($this->any())->method('toCode')->willReturn('$arg2');
++
++        $definition = new MethodDefinition();
++        $definition->setMethodName('someMethod');
++        $definition->setInstructions([
++            'instruction 1',
++            'instruction 2',
++            'instruction 3',
++        ]);
++        $definition->setArguments([
++            $this->arg1,
++            $this->arg2,
++        ]);
++        $definition->setReturnType('?string');
++
++        $expected = 'public function someMethod($arg1, $arg2): ?string' . PHP_EOL
++            . '{' . PHP_EOL
++            . 'instruction 1;' . PHP_EOL
++            . 'instruction 2;' . PHP_EOL
++            . 'instruction 3;' . PHP_EOL
++            . '}';
++
++        Assert::assertEquals($expected, $definition->toCode());
++    }
+ }

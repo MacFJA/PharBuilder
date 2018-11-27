@@ -1,53 +1,74 @@
 {
-    "name": "macfja/phar-builder",
-    "description": "CLI tool for create phar of your composer based project",
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "MacFJA"
-        }
-    ],
-    "require": {
-        "php": ">=5.4.0",
-        "symfony/console": "~2.7 || ^3.0 || ^4.0",
-        "macfja/symfony-console-filechooser": "~0.2 || ~1",
-        "rych/bytesize": "~1.0",
-        "webignition/readable-duration": "^0.2",
-        "league/event": "^2.1",
-        "symfony/process": "^2.7 || ^3.0 || ^4.0",
-        "symfony/finder": "^4.0",
-        "neutron/signal-handler": "^1.0"
-    },
-    "autoload": {
-        "psr-4": {"MacFJA\\PharBuilder\\": "app/"}
-    },
-    "bin": ["bin/phar-builder", "bin/phar-builder.php"],
-    "extra": {
-        "phar-builder": {
-            "skip-shebang": false,
-            "include-dev": false,
-            "entry-point": "bin/phar-builder.php",
-            "compression": "None",
-            "name": "phar-builder.phar",
-            "output-dir": "./",
-            "include": ["bin"]
-        }
-    },
-    "require-dev": {
-        "phpmd/phpmd": "^2.4",
-        "sebastian/phpcpd": "^2.0",
-        "squizlabs/php_codesniffer": "^2.5"
-    },
-    "scripts": {
-        "test": [
-            "php -l app/",
-            "phpmd app/ text phpmd.xml.dist",
-            "phpcpd app/",
-            "phpcs"
-        ],
-        "build-sign": [
-            "php -d phar.readonly=0 bin/phar-builder package composer.json",
-            "gpg2 --output phar-builder.phar.asc --armor --detach-sign phar-builder.phar"
-        ]
+  "name": "macfja/phar-builder",
+  "license": "MIT",
+  "require": {
+    "php": "~7.1",
+    "symfony/console": "^4.1",
+    "nicmart/string-template": "^0.1.1",
+    "league/event": "^2.1",
+    "webignition/readable-duration": "^0.3.0",
+    "gugglegum/memory-size": "^1.0",
+    "ext-json": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "MacFJA\\PharBuilder\\": "lib/"
     }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "MacFJA\\PharBuilder\\tests\\": "tests/"
+    }
+  },
+  "require-dev": {
+    "roave/security-advisories": "dev-master",
+    "phpunit/phpunit": "^7.4",
+    "infection/infection": "^0.10.5",
+    "gstarczyk/mimic": "^1.1",
+    "edgedesign/phpqa": "^1.19",
+    "jakub-onderka/php-parallel-lint": "^1.0",
+    "macfja/mimic-patches": "1.0.0"
+  },
+  "bin": ["bin/phar-builder.php"],
+
+  "repositories": [
+    {
+      "type": "package",
+      "package": {
+        "type": "metapackage",
+        "name": "macfja/mimic-patches",
+        "version": "1.0.0",
+        "require": {
+          "netresearch/composer-patches-plugin": "~1.0"
+        },
+        "extra": {
+          "patches": {
+            "gstarczyk/mimic": {
+              "1.1.2": [
+                {
+                  "title": "gstarczyk/mimic: Add typehint of PHP 7.0 and 7.1",
+                  "url": "./patches/gstarczyk/mimic/php7-noTest.patch"
+                },
+                {
+                  "title": "gstarczyk/mimic: Add call to original constructor",
+                  "url": "./patches/gstarczyk/mimic/constructor.patch"
+                },
+                {
+                  "title": "gstarczyk/mimic: Add spy feature",
+                  "url": "./patches/gstarczyk/mimic/spy.patch"
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  ],
+
+  "extra": {
+    "phar-builder": {
+      "compression": "gzip",
+      "included": ["resources", "LICENSE.md", "README.md"]
+    }
+  }
 }
