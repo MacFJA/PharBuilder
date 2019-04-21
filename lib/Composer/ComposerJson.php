@@ -9,6 +9,8 @@ namespace MacFJA\PharBuilder\Composer;
 
 class ComposerJson
 {
+    use ComposerAutoloaderTrait;
+
     private const FILE_NAME = 'composer.json';
     /** @var string */
     private $path;
@@ -16,7 +18,7 @@ class ComposerJson
     private $data;
     /** @var bool */
     private $valid = true;
-    /** @var ComposerLock */
+    /** @var ComposerLock|null */
     private $lockObject;
 
     /**
@@ -96,5 +98,30 @@ class ComposerJson
         }
 
         return $this->lockObject;
+    }
+
+    public function getSourcesPath(bool $includeDev): array
+    {
+        $allPath = $this->getAutoloadsPath(false);
+        if ($includeDev) {
+            $allPath = array_merge($allPath, $this->getAutoloadsPath(true));
+        }
+
+        return array_unique($allPath);
+    }
+
+    private function getAutoloadsPath(bool $dev): array
+    {
+        $autoloads = [$this->data['autoload' . ($dev ? '-dev' : '')] ?? []];
+
+        $psrPath = $this->getPsrPath($autoloads);
+        $filesPath = $this->getFilesPath($autoloads, true);
+
+        $allPath = array_merge($psrPath, $filesPath);
+        $allPath = array_map(function (string $path): string {
+            return dirname($this->getPath()) . DIRECTORY_SEPARATOR . $path;
+        }, $allPath);
+
+        return $allPath;
     }
 }

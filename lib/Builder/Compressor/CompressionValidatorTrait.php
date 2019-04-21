@@ -7,6 +7,7 @@
 
 namespace MacFJA\PharBuilder\Builder\Compressor;
 
+/** @codeCoverageIgnore Impossible to UT: To many dependencies to the platform */
 trait CompressionValidatorTrait
 {
     private function isCompressionValid(int $compression): bool

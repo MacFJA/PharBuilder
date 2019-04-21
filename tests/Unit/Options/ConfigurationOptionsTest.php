@@ -4,7 +4,7 @@
  * This software may be modified and distributed under the terms
  * of the MIT license. See the LICENSE.md file for details.
  */
-namespace MacFJA\PharBuilder\tests\Options;
+namespace MacFJA\PharBuilder\UnitTest\Options;
 
 use MacFJA\PharBuilder\Options\ConfigurationOptions;
 use PHPUnit\Framework\TestCase;
@@ -25,7 +25,7 @@ class ConfigurationOptionsTest extends TestCase
      */
     public function testGetName($configuration, $expected)
     {
-        $confOptions = new ConfigurationOptions($configuration, __DIR__.'/../fixtures/root');
+        $confOptions = new ConfigurationOptions($configuration, __DIR__ . '/../fixtures/root');
 
         $this->assertEquals($expected, $confOptions->getName());
     }
@@ -36,7 +36,7 @@ class ConfigurationOptionsTest extends TestCase
      */
     public function testGetExcluded($configuration, $expected)
     {
-        $confOptions = new ConfigurationOptions($configuration, __DIR__.'/../fixtures/root');
+        $confOptions = new ConfigurationOptions($configuration, __DIR__ . '/../fixtures/root');
 
         $this->assertEquals($expected, $confOptions->getExcluded());
     }
@@ -47,7 +47,7 @@ class ConfigurationOptionsTest extends TestCase
      */
     public function testGetOutputPath($configuration, $expected)
     {
-        $confOptions = new ConfigurationOptions($configuration, __DIR__.'/../fixtures/root');
+        $confOptions = new ConfigurationOptions($configuration, __DIR__ . '/../fixtures/root');
 
         $this->assertEquals($expected, $confOptions->getOutputPath());
     }
@@ -58,7 +58,7 @@ class ConfigurationOptionsTest extends TestCase
      */
     public function testGetIncluded($configuration, $expected)
     {
-        $confOptions = new ConfigurationOptions($configuration, __DIR__.'/../fixtures/root');
+        $confOptions = new ConfigurationOptions($configuration, __DIR__ . '/../fixtures/root');
 
         $this->assertEquals($expected, $confOptions->getIncluded());
     }
@@ -69,7 +69,7 @@ class ConfigurationOptionsTest extends TestCase
      */
     public function testGetCompression($configuration, $expected)
     {
-        $confOptions = new ConfigurationOptions($configuration, __DIR__.'/../fixtures/root');
+        $confOptions = new ConfigurationOptions($configuration, __DIR__ . '/../fixtures/root');
 
         $this->assertEquals($expected, $confOptions->getCompression());
     }
@@ -80,7 +80,7 @@ class ConfigurationOptionsTest extends TestCase
      */
     public function testGetStubPath($configuration, $expected)
     {
-        $confOptions = new ConfigurationOptions($configuration, __DIR__.'/../fixtures/root');
+        $confOptions = new ConfigurationOptions($configuration, __DIR__ . '/../fixtures/root');
 
         $this->assertEquals($expected, $confOptions->getStubPath());
     }
@@ -91,7 +91,7 @@ class ConfigurationOptionsTest extends TestCase
      */
     public function testGetEntryPoint($configuration, $expected)
     {
-        $confOptions = new ConfigurationOptions($configuration, __DIR__.'/../fixtures/root');
+        $confOptions = new ConfigurationOptions($configuration, __DIR__ . '/../fixtures/root');
 
         $this->assertEquals($expected, $confOptions->getEntryPoint());
     }
@@ -102,7 +102,7 @@ class ConfigurationOptionsTest extends TestCase
      */
     public function testIncludeDev($configuration, $expected)
     {
-        $confOptions = new ConfigurationOptions($configuration, __DIR__.'/../fixtures/root');
+        $confOptions = new ConfigurationOptions($configuration, __DIR__ . '/../fixtures/root');
 
         $this->assertEquals($expected, $confOptions->includeDev());
     }
@@ -181,8 +181,8 @@ class ConfigurationOptionsTest extends TestCase
             ];
         } elseif ($methodName === 'testGetStubPath') {
             return [
-                [[ConfigurationOptions::WITH_SHEBANG_OPTION_NAME => true], \dirname(__DIR__, 2).'/resources/stubs/map-phar+shebang.tpl'],
-                [[ConfigurationOptions::WITH_SHEBANG_OPTION_NAME => false], \dirname(__DIR__, 2).'/resources/stubs/map-phar+no-shebang.tpl'],
+                [[ConfigurationOptions::WITH_SHEBANG_OPTION_NAME => true], \dirname(__DIR__, 3) . '/resources/stubs/map-phar+shebang.tpl'],
+                [[ConfigurationOptions::WITH_SHEBANG_OPTION_NAME => false], \dirname(__DIR__, 3) . '/resources/stubs/map-phar+no-shebang.tpl'],
                 [[ConfigurationOptions::WITH_SHEBANG_OPTION_NAME => 'error'], null],
                 [[], null],
             ];

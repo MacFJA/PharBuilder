@@ -45,7 +45,7 @@ class OptionsChain implements OptionsInterface
             return;
         }
 
-        array_splice($this->options, $position, 0, $options);
+        array_splice($this->options, $position, 0, [$options]);
     }
 
     public static function createDefaultChain(
@@ -63,8 +63,10 @@ class OptionsChain implements OptionsInterface
         if ($consoleInput !== null && $rootDir !== null) {
             $chain[] = new ConsoleOptions($consoleInput, $rootDir);
         }
-        if ($composerJson !== null) {
+        if ($composerJson !== null && $rootDir !== null) {
             $chain[] = new ConfigurationOptions($composerJson->getExtra('phar-builder'), $rootDir);
+        }
+        if ($composerJson !== null) {
             $chain[] = new ComposerOptions($composerJson);
         }
         if ($rootDir !== null) {
@@ -80,7 +82,12 @@ class OptionsChain implements OptionsInterface
         return $this->recursiveCall(__FUNCTION__);
     }
 
-    private function recursiveCall($name)
+    /**
+     * @param string $name
+     *
+     * @return mixed|null
+     */
+    private function recursiveCall(string $name)
     {
         foreach ($this->options as $option) {
             $value = $option->{$name}();
@@ -122,7 +129,7 @@ class OptionsChain implements OptionsInterface
         $allValues = [];
         foreach ($this->options as $option) {
             $value = $option->getExcluded();
-            if ($value === null || \count($value) === 0) {
+            if (\count($value) === 0) {
                 continue;
             }
             $allValues = array_merge($allValues, $value);

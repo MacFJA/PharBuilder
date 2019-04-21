@@ -9,12 +9,14 @@ namespace MacFJA\PharBuilder\Composer;
 
 class ComposerLock
 {
+    use ComposerAutoloaderTrait;
+
     private const FILE_NAME = 'composer.lock';
     /** @var string */
     private $path;
     /** @var ComposerJson */
     private $composerJson;
-
+    /** @var array */
     private $data;
 
     /**
@@ -56,8 +58,11 @@ class ComposerLock
 
     public function getRequirePath(): array
     {
-        $psrPath = $this->getPsrPath(false);
-        $filesPath = $this->getFilesPath(false, true);
+        $package = $this->data['packages'] ?? [];
+        $autoloads = array_column($package, 'autoload', 'name');
+
+        $psrPath = $this->getPsrPath($autoloads);
+        $filesPath = $this->getFilesPath($autoloads, true);
 
         $vendorDir = $this->composerJson->getVendorDir();
 
@@ -69,93 +74,13 @@ class ComposerLock
         return $allPath;
     }
 
-    /**
-     * @codeCoverageIgnore
-     * @param bool $dev
-     * @return string[]
-     */
-    private function getPsrPath(bool $dev): array
+    public function getRequireDevPath(): array
     {
-        $package = $this->data['packages' . ($dev ? '-dev' : '')] ?? [];
-
+        $package = $this->data['packages-dev'] ?? [];
         $autoloads = array_column($package, 'autoload', 'name');
 
-        $allPath = [];
-
-        foreach ($autoloads as $name => $autoload) {
-            $prefix = $name;
-
-            // PSR-0 and PSR-4 are the same if the namespace doesn't matter
-            // And for us, it's the case
-            $psrPath = array_merge($autoload['psr-4'] ?? [], $autoload['psr-0'] ?? []);
-            // Only need the path (remove the namespace)
-            $psrPath = array_values($psrPath);
-            // Flatten path, as you can specify multiple path for one namespace
-            $psrPath = array_reduce($psrPath, function ($carry, $item): array {
-                if (\is_array($item)) {
-                    return array_merge($carry, $item);
-                }
-                $carry[] = $item;
-
-                return $carry;
-            }, []);
-            // Add the package name (<=> path in vendor dir)
-            $psrPath = array_map(function (string $path) use ($prefix) {
-                return $prefix . DIRECTORY_SEPARATOR . $path;
-            }, $psrPath);
-
-            $allPath = array_merge($allPath, $psrPath);
-        }
-
-        return $allPath;
-    }
-
-    /**
-     * @codeCoverageIgnore
-     * @param bool $dev
-     * @param bool $withClassmap
-     * @return string[]
-     */
-    private function getFilesPath(bool $dev, bool $withClassmap): array
-    {
-        $package = $this->data['packages' . ($dev ? '-dev' : '')] ?? [];
-
-        $autoloads = array_column($package, 'autoload', 'name');
-
-        $allPath = [];
-
-        foreach ($autoloads as $name => $autoload) {
-            $prefix = $name;
-
-            $filePath = $autoload['files'] ?? [];
-            // "files" and "classmap" have a very similar behavior
-            if ($withClassmap) {
-                $filePath = array_merge($filePath, $autoload['classmap'] ?? []);
-            }
-            // Flatten path, as you can specify multiple path for one namespace
-            $filePath = array_reduce($filePath, function ($carry, $item): array {
-                if (\is_array($item)) {
-                    return array_merge($carry, $item);
-                }
-                $carry[] = $item;
-
-                return $carry;
-            }, []);
-            // Add the package name (<=> path in vendor dir)
-            $filePath = array_map(function (string $path) use ($prefix) {
-                return $prefix . DIRECTORY_SEPARATOR . $path;
-            }, $filePath);
-
-            $allPath = array_merge($allPath, $filePath);
-        }
-
-        return $allPath;
-    }
-
-    public function getRequireDevPath()
-    {
-        $psrPath = $this->getPsrPath(true);
-        $filesPath = $this->getFilesPath(true, true);
+        $psrPath = $this->getPsrPath($autoloads);
+        $filesPath = $this->getFilesPath($autoloads, true);
 
         $vendorDir = $this->composerJson->getVendorDir();
 
@@ -167,9 +92,12 @@ class ComposerLock
         return $allPath;
     }
 
-    public function getRequireDevFilesAutoload()
+    public function getRequireDevFilesAutoload(): array
     {
-        $filesPath = $this->getFilesPath(true, false);
+        $package = $this->data['packages-dev'] ?? [];
+        $autoloads = array_column($package, 'autoload', 'name');
+
+        $filesPath = $this->getFilesPath($autoloads, false);
 
         $vendorDir = $this->composerJson->getVendorDir();
 

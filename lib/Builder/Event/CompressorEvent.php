@@ -10,6 +10,7 @@ namespace MacFJA\PharBuilder\Builder\Event;
 use League\Event\Event;
 use MacFJA\PharBuilder\Builder\ArchiveCompressor;
 
+/** @codeCoverageIgnore */
 class CompressorEvent extends Event
 {
     /** @var ArchiveCompressor */
@@ -21,9 +22,6 @@ class CompressorEvent extends Event
         $this->compressor = $compressor;
     }
 
-    /**
-     * @return ArchiveCompressor
-     */
     public function getCompressor(): ArchiveCompressor
     {
         return $this->compressor;

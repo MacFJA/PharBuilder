@@ -10,6 +10,7 @@ namespace MacFJA\PharBuilder\Builder\Event;
 use League\Event\Event;
 use MacFJA\PharBuilder\Builder\ArchiveBuilder;
 
+/** @codeCoverageIgnore */
 class BuilderEvent extends Event
 {
     /** @var ArchiveBuilder */
@@ -27,9 +28,6 @@ class BuilderEvent extends Event
         $this->builder = $builder;
     }
 
-    /**
-     * @return ArchiveBuilder
-     */
     public function getBuilder(): ArchiveBuilder
     {
         return $this->builder;

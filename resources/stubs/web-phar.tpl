@@ -1,1 +1,1 @@
-<?php Phar::webPhar(null, '{alias}/{entry-point}'); __HALT_COMPILER(); ?>
+<?php Phar::webPhar(null, __FILE__ . '/{entry-point}'); __HALT_COMPILER(); ?>

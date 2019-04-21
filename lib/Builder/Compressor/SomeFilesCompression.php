@@ -29,7 +29,7 @@ class SomeFilesCompression extends AbstractFilesCompression
         $this->visitor = $visitor;
     }
 
-    public static function createAuthorizeExtensions(array $extensions)
+    public static function createAuthorizeExtensions(array $extensions): SomeFilesCompression
     {
         return new SomeFilesCompression(self::createVisitor($extensions, true));
     }
@@ -38,7 +38,9 @@ class SomeFilesCompression extends AbstractFilesCompression
     {
         return new class($extensions, $authorize) implements CompressionVisitor
         {
+            /** @var string[] */
             private $extensions;
+            /** @var bool */
             private $authorize;
 
             /**
@@ -75,7 +77,7 @@ class SomeFilesCompression extends AbstractFilesCompression
         };
     }
 
-    public static function createRefuseExtensions(array $extensions)
+    public static function createRefuseExtensions(array $extensions): SomeFilesCompression
     {
         return new SomeFilesCompression(self::createVisitor($extensions, false));
     }

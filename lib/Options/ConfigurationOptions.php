@@ -23,7 +23,7 @@ class ConfigurationOptions implements OptionsInterface
     public const GZ_COMPRESSION_OPTION_VALUE = 'gzip';
     public const NO_COMPRESSION_OPTION_VALUE = 'none';
 
-    /** @var array */
+    /** @var array<string,mixed> */
     private $configurations;
     /** @var string */
     private $rootDir;
@@ -45,7 +45,12 @@ class ConfigurationOptions implements OptionsInterface
         return $this->getOnePathData($this->getData(static::OUTPUT_OPTION_NAME), $this->rootDir, false, true);
     }
 
-    private function getData($path)
+    /**
+     * @param string $path
+     *
+     * @return mixed|null
+     */
+    private function getData(string $path)
     {
         if (empty($this->configurations)) {
             return null;
@@ -64,7 +69,7 @@ class ConfigurationOptions implements OptionsInterface
         return $this->getBooleanData(static::WITH_DEV_OPTION_NAME);
     }
 
-    private function getBooleanData($name): ?bool
+    private function getBooleanData(string $name): ?bool
     {
         $data = $this->getData($name);
 

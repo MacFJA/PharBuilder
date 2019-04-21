@@ -4,7 +4,7 @@
  * This software may be modified and distributed under the terms
  * of the MIT license. See the LICENSE.md file for details.
  */
-namespace MacFJA\PharBuilder\tests\Options;
+namespace MacFJA\PharBuilder\UnitTest\Options;
 
 use MacFJA\PharBuilder\Options\DefaultOptions;
 use PHPUnit\Framework\TestCase;
@@ -13,13 +13,14 @@ use PHPUnit\Framework\TestCase;
  * Class DefaultOptionsTest
  *
  * @covers \MacFJA\PharBuilder\Options\DefaultOptions
+ * @uses \MacFJA\PharBuilder\Exception\MissingConfigurationException
  * @package MacFJA\PharBuilder\tests\Options
  */
 class DefaultOptionsTest extends TestCase
 {
 
     /**
-     * @expectedException \BadMethodCallException
+     * @expectedException \MacFJA\PharBuilder\Exception\MissingConfigurationException
      */
     public function testGetName()
     {
@@ -44,13 +45,13 @@ class DefaultOptionsTest extends TestCase
     public function testGetStubPath()
     {
         $this->assertEquals(
-            \dirname(__DIR__, 2).'/resources/stubs/map-phar+shebang.tpl',
+            \dirname(__DIR__, 3) . '/resources/stubs/map-phar+shebang.tpl',
             (new DefaultOptions())->getStubPath()
         );
     }
 
     /**
-     * @expectedException \BadMethodCallException
+     * @expectedException \MacFJA\PharBuilder\Exception\MissingConfigurationException
      */
     public function testGetEntryPoint()
     {

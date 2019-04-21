@@ -1,0 +1,5 @@
+phpcs:
+  standard: phpcs.xml
+
+phpmetrics:
+  composer: composer.json

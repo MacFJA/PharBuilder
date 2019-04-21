@@ -8,16 +8,17 @@
 namespace MacFJA\PharBuilder\Builder;
 
 use gugglegum\MemorySize\Formatter;
+use webignition\ReadableDuration\Factory;
 use webignition\ReadableDuration\ReadableDuration;
 
 class Stats
 {
-    /** @var float */
-    private $startTime;
-    /** @var float */
-    private $endTime;
+    /** @var int */
+    private $startTime = 0;
+    /** @var int */
+    private $endTime = -1;
     /** @var string */
-    private $finalPath;
+    private $finalPath = '';
 
     public static function getSizeString(string $path): string
     {
@@ -33,11 +34,12 @@ class Stats
         return $parser->format($size);
     }
 
-    public static function getDurationString($durationInSec): string
+    public static function getDurationString(int $durationInSec): string
     {
-        $duration = new ReadableDuration($durationInSec);
+        $factory = new Factory();
+        $duration = $factory->create($durationInSec);
 
-        $data = $duration->getInMostAppropriateUnits(2);
+        $data = $factory->getInMostAppropriateUnits($duration, 2);
         $result = [];
         foreach ($data as $unit) {
             $result[] = $unit['value'] . ' ' . $unit['unit'] . ($unit['value'] > 1 ? 's' : '');
@@ -46,32 +48,31 @@ class Stats
         return implode(', ', $result);
     }
 
+    /** @codeCoverageIgnore */
     public function start(): void
     {
         $this->startTime = time();
     }
 
+    /** @codeCoverageIgnore */
     public function end(): void
     {
         $this->endTime = time();
     }
 
-    /**
-     * @return string
-     */
+    /** @codeCoverageIgnore */
     public function getFinalPath(): string
     {
         return $this->finalPath;
     }
 
-    /**
-     * @param string $finalPath
-     */
+    /** @codeCoverageIgnore */
     public function setFinalPath(string $finalPath): void
     {
         $this->finalPath = $finalPath;
     }
 
+    /** @codeCoverageIgnore */
     public function getDuration(): int
     {
         return $this->endTime - $this->startTime;

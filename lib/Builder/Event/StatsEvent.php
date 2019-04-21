@@ -10,6 +10,7 @@ namespace MacFJA\PharBuilder\Builder\Event;
 use League\Event\Event;
 use MacFJA\PharBuilder\Builder\Stats;
 
+/** @codeCoverageIgnore */
 class StatsEvent extends Event
 {
     /** @var Stats */
@@ -21,9 +22,6 @@ class StatsEvent extends Event
         $this->stats = $stats;
     }
 
-    /**
-     * @return Stats
-     */
     public function getStats(): Stats
     {
         return $this->stats;

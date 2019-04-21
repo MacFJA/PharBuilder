@@ -4,7 +4,7 @@
  * This software may be modified and distributed under the terms
  * of the MIT license. See the LICENSE.md file for details.
  */
-namespace MacFJA\PharBuilder\tests\Options\Event;
+namespace MacFJA\PharBuilder\UnitTest\Options\Event;
 
 use Gstarczyk\Mimic\Mimic;
 use MacFJA\PharBuilder\Composer\ComposerJson;
@@ -30,7 +30,7 @@ class PathBasedResultEventTest extends TestCase
 
         $this->assertTrue($mock->isPathValid(__DIR__));
         $this->assertFalse($mock->isPathValid(__FILE__));
-        $this->assertFalse($mock->isPathValid(__DIR__.'/error/'));
+        $this->assertFalse($mock->isPathValid(__DIR__ . '/error/'));
 
         /** @var PathBasedResultEvent $mock */
         $mock = Mimic::mock(PathBasedResultEvent::class);
@@ -39,7 +39,7 @@ class PathBasedResultEventTest extends TestCase
 
         $this->assertFalse($mock->isPathValid(__DIR__));
         $this->assertTrue($mock->isPathValid(__FILE__));
-        $this->assertFalse($mock->isPathValid(__DIR__.'/error'));
+        $this->assertFalse($mock->isPathValid(__DIR__ . '/error'));
     }
 
     private function buildMock()
@@ -74,7 +74,7 @@ class PathBasedResultEventTest extends TestCase
         /** @var ComposerJson $mock */
         $mock = Mimic::mock(ComposerJson::class);
         Mimic::when($mock)->invoke('isValid')->withoutArguments()->willReturn(true);
-        Mimic::when($mock)->invoke('getPath')->withoutArguments()->willReturn(__DIR__.'/composer.json');
+        Mimic::when($mock)->invoke('getPath')->withoutArguments()->willReturn(__DIR__ . '/composer.json');
         /** @var PathBasedResultEvent $invalidComposer */
         $invalidComposer = $this->buildMock('*', true, true, $mock, null);
         Mimic::spy($invalidComposer, 'getComposerJsonDirectory');

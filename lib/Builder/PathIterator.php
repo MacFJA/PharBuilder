@@ -14,6 +14,7 @@ class PathIterator extends \RecursiveFilterIterator
 
     /** @var PathVisitor PathVisitor */
     private $visitor;
+    /** @var string[] */
     private $toFake = [];
 
     public function __construct(string $directory, PathVisitor $visitor)

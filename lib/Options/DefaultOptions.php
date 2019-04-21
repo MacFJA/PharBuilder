@@ -7,6 +7,8 @@
 
 namespace MacFJA\PharBuilder\Options;
 
+use MacFJA\PharBuilder\Exception\MissingConfigurationException;
+
 class DefaultOptions implements OptionsInterface
 {
 
@@ -17,7 +19,7 @@ class DefaultOptions implements OptionsInterface
 
     public function getName(): ?string
     {
-        throw new \BadMethodCallException('The name of the phar MUST be defined.');
+        throw new MissingConfigurationException('The name of the phar');
     }
 
     public function includeDev(): ?bool
@@ -32,7 +34,7 @@ class DefaultOptions implements OptionsInterface
 
     public function getEntryPoint(): ?string
     {
-        throw new \BadMethodCallException('The entry point of the phar MUST be defined.');
+        throw new MissingConfigurationException('The entry point of the phar');
     }
 
     public function getIncluded(): ?array

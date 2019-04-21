@@ -29,7 +29,6 @@ abstract class AbstractFilesCompression implements CompressorInterface
         /** @var \PharFileInfo $pharFileInfo */
         foreach ($content as $pharFileInfo) {
             if ($pharFileInfo->isDir()) {
-                $this->execute($content, $compression);
                 continue;
             }
             $this->compress($pharFileInfo, $compression);

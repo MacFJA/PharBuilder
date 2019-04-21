@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ruleset name="Project">
+    <description>Project Coding Standard</description>
+
+    <rule ref="tests/phpcs/ruleset.xml"/>
+    <rule ref="PSR12"/>
+</ruleset>

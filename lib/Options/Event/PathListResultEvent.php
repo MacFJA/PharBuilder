@@ -30,7 +30,7 @@ class PathListResultEvent extends PathBasedResultEvent
             return true;
         }
 
-        return array_reduce($path, function (bool $carry, string $item) {
+        return array_reduce($path, function (bool $carry, string $item): bool {
             return $this->addPath($item) || $carry;
         }, false);
     }

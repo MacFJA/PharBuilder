@@ -24,7 +24,10 @@ class Application extends SfApplication implements EmitterAwareInterface, Listen
 {
     use EmitterAwareTrait;
 
-    /** @var SymfonyStyle */
+    /**
+     * @psalm-suppress PropertyNotSetInConstructor
+     * @var SymfonyStyle
+     */
     private $style;
 
     public function __construct()
@@ -106,6 +109,11 @@ class Application extends SfApplication implements EmitterAwareInterface, Listen
         return $listener === $this;
     }
 
+    /**
+     * @param InputInterface  $input
+     * @param OutputInterface $output
+     * @return void
+     */
     protected function configureIO(InputInterface $input, OutputInterface $output)
     {
         parent::configureIO($input, $output);

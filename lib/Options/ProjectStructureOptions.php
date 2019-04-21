@@ -15,7 +15,9 @@ namespace MacFJA\PharBuilder\Options;
  */
 class ProjectStructureOptions implements OptionsInterface
 {
+    /** @var string */
     private $rootDir;
+    /** @var ConfigurationOptions */
     private $configurationOptions;
 
     /**
@@ -23,12 +25,12 @@ class ProjectStructureOptions implements OptionsInterface
      *
      * @param $rootDir
      */
-    public function __construct($rootDir)
+    public function __construct(string $rootDir)
     {
         $this->rootDir = $rootDir;
 
         $common = json_decode(file_get_contents(__DIR__ . '/commonProjectStructure.json'), true);
-        $common = array_reduce($common, function ($carry, $item) {
+        $common = array_reduce($common, function (array $carry, array $item): array {
             return array_merge_recursive($carry, $item);
         }, []);
         $common = array_map('array_unique', $common);

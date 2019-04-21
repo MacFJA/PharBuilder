@@ -53,18 +53,78 @@ class ConsoleOptions implements OptionsInterface
     {
         $def = new InputDefinition();
         $def->addOptions([
-            new InputOption(self::OUTPUT_OPTION_NAME, null, InputOption::VALUE_REQUIRED, 'Where to output the Phar'),
-            new InputOption(self::NAME_OPTION_NAME, null, InputOption::VALUE_REQUIRED, 'The name of the Phar'),
-            new InputOption(self::WITHOUT_DEV_OPTION_NAME, null, InputOption::VALUE_NONE, 'Do not include dev dependencies'),
-            new InputOption(self::WITH_DEV_OPTION_NAME, null, InputOption::VALUE_NONE, 'Include dev dependencies'),
-            new InputOption(self::WITHOUT_SHEBANG_OPTION_NAME, null, InputOption::VALUE_NONE, 'Do not add/remove shebang'),
-            new InputOption(self::WITH_SHEBANG_OPTION_NAME, null, InputOption::VALUE_NONE, 'Ensure that a shebang is used'),
-            new InputOption(self::ENTRYPOINT_OPTION_NAME, null, InputOption::VALUE_REQUIRED, 'The file to include when the Phar is executed/called'),
-            new InputOption(self::INCLUDED_OPTION_NAME, null, InputOption::VALUE_REQUIRED, 'The list (separate by ",") of path to add in the Phar'),
-            new InputOption(self::EXCLUDED_OPTION_NAME, null, InputOption::VALUE_REQUIRED, 'The list (separate by ",") of path to exclude in the Phar'),
-            new InputOption(self::BZ_COMPRESSION_OPTION_NAME, null, InputOption::VALUE_NONE, 'Use the BZip2 compression for the Phar'),
-            new InputOption(self::GZ_COMPRESSION_OPTION_NAME, null, InputOption::VALUE_NONE, 'Use the GZip compression for the Phar'),
-            new InputOption(self::NO_COMPRESSION_OPTION_NAME, null, InputOption::VALUE_NONE, 'Do not compress the Phar'),
+            new InputOption(
+                self::OUTPUT_OPTION_NAME,
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Where to output the Phar'
+            ),
+            new InputOption(
+                self::NAME_OPTION_NAME,
+                null,
+                InputOption::VALUE_REQUIRED,
+                'The name of the Phar'
+            ),
+            new InputOption(
+                self::WITHOUT_DEV_OPTION_NAME,
+                null,
+                InputOption::VALUE_NONE,
+                'Do not include dev dependencies'
+            ),
+            new InputOption(
+                self::WITH_DEV_OPTION_NAME,
+                null,
+                InputOption::VALUE_NONE,
+                'Include dev dependencies'
+            ),
+            new InputOption(
+                self::WITHOUT_SHEBANG_OPTION_NAME,
+                null,
+                InputOption::VALUE_NONE,
+                'Do not add/remove shebang'
+            ),
+            new InputOption(
+                self::WITH_SHEBANG_OPTION_NAME,
+                null,
+                InputOption::VALUE_NONE,
+                'Ensure that a shebang is used'
+            ),
+            new InputOption(
+                self::ENTRYPOINT_OPTION_NAME,
+                null,
+                InputOption::VALUE_REQUIRED,
+                'The file to include when the Phar is executed/called'
+            ),
+            new InputOption(
+                self::INCLUDED_OPTION_NAME,
+                null,
+                InputOption::VALUE_REQUIRED,
+                'The list (separate by ",") of path to add in the Phar'
+            ),
+            new InputOption(
+                self::EXCLUDED_OPTION_NAME,
+                null,
+                InputOption::VALUE_REQUIRED,
+                'The list (separate by ",") of path to exclude in the Phar'
+            ),
+            new InputOption(
+                self::BZ_COMPRESSION_OPTION_NAME,
+                null,
+                InputOption::VALUE_NONE,
+                'Use the BZip2 compression for the Phar'
+            ),
+            new InputOption(
+                self::GZ_COMPRESSION_OPTION_NAME,
+                null,
+                InputOption::VALUE_NONE,
+                'Use the GZip compression for the Phar'
+            ),
+            new InputOption(
+                self::NO_COMPRESSION_OPTION_NAME,
+                null,
+                InputOption::VALUE_NONE,
+                'Do not compress the Phar'
+            ),
         ]);
 
         return $def;
@@ -75,7 +135,12 @@ class ConsoleOptions implements OptionsInterface
         return $this->getOnePathData($this->getOption(static::OUTPUT_OPTION_NAME), $this->rootDir, false, true);
     }
 
-    private function getOption($name)
+    /**
+     * @param string $name
+     *
+     * @return mixed|null
+     */
+    private function getOption(string $name)
     {
         return $this->input->hasOption($name) ? $this->input->getOption($name) : null;
     }
@@ -90,7 +155,7 @@ class ConsoleOptions implements OptionsInterface
         return $this->getBoolOption(static::WITH_DEV_OPTION_NAME, static::WITHOUT_DEV_OPTION_NAME);
     }
 
-    private function getBoolOption($withName, $withoutName): ?bool
+    private function getBoolOption(string $withName, string $withoutName): ?bool
     {
         $without = $this->getOption($withoutName);
         $with = $this->getOption($withName);

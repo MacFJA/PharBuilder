@@ -49,8 +49,15 @@ class ArchiveBuilder implements EmitterAwareInterface
 
     public function add(string $path): void
     {
+        $path = str_replace('/./', '/', $path);
+
         if (is_dir($path)) {
             $this->addDirectory($path);
+
+            return;
+        }
+        if (!file_exists($path)) {
+            $this->addEmptyFile($path);
 
             return;
         }
@@ -96,6 +103,8 @@ class ArchiveBuilder implements EmitterAwareInterface
 
     public function addEmpty(string $path): void
     {
+        $path = str_replace('/./', '/', $path);
+
         if (is_dir($path)) {
             $this->addEmptyFilesForDirectory($path);
 
@@ -106,7 +115,7 @@ class ArchiveBuilder implements EmitterAwareInterface
     }
 
     /** @SuppressWarnings(PHPMD.UnusedLocalVariable) */
-    public function addEmptyFilesForDirectory($directory): void
+    public function addEmptyFilesForDirectory(string $directory): void
     {
         $this->getEmitter()->emit(new BuilderAddEvent($directory, true, true));
         $visitor = new class implements PathVisitor

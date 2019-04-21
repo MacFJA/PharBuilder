@@ -6,7 +6,7 @@
     "symfony/console": "^4.1",
     "nicmart/string-template": "^0.1.1",
     "league/event": "^2.1",
-    "webignition/readable-duration": "^0.3.0",
+    "webignition/readable-duration": "^2.0",
     "gugglegum/memory-size": "^1.0",
     "ext-json": "*"
   },
@@ -17,17 +17,22 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "MacFJA\\PharBuilder\\tests\\": "tests/"
+      "MacFJA\\PharBuilder\\UnitTest\\": "tests/Unit/",
+      "MacFJA\\PharBuilder\\CodeSniffer\\Sniffs\\": "tests/phpcs/Sniffs/"
     }
   },
   "require-dev": {
     "roave/security-advisories": "dev-master",
     "phpunit/phpunit": "^7.4",
     "infection/infection": "^0.10.5",
-    "gstarczyk/mimic": "^1.1",
+    "gstarczyk/mimic": "1.2.1",
     "edgedesign/phpqa": "^1.19",
     "jakub-onderka/php-parallel-lint": "^1.0",
-    "macfja/mimic-patches": "1.0.0"
+    "macfja/mimic-patches": "1.0.0",
+    "squizlabs/php_codesniffer": "^3.4.0",
+    "vimeo/psalm": "^3.2",
+    "phpstan/phpstan": "^0.11.5",
+    "sensiolabs/security-checker": "^5.0"
   },
   "bin": ["bin/phar-builder.php"],
 
@@ -44,18 +49,10 @@
         "extra": {
           "patches": {
             "gstarczyk/mimic": {
-              "1.1.2": [
-                {
-                  "title": "gstarczyk/mimic: Add typehint of PHP 7.0 and 7.1",
-                  "url": "./patches/gstarczyk/mimic/php7-noTest.patch"
-                },
+              "1.2.1": [
                 {
                   "title": "gstarczyk/mimic: Add call to original constructor",
                   "url": "./patches/gstarczyk/mimic/constructor.patch"
-                },
-                {
-                  "title": "gstarczyk/mimic: Add spy feature",
-                  "url": "./patches/gstarczyk/mimic/spy.patch"
                 }
               ]
             }

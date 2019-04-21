@@ -9,6 +9,7 @@ namespace MacFJA\PharBuilder\Builder\Event;
 
 use League\Event\AbstractEvent;
 
+/** @codeCoverageIgnore */
 class BuilderAddEvent extends AbstractEvent
 {
     /** @var string */
@@ -32,30 +33,20 @@ class BuilderAddEvent extends AbstractEvent
         $this->isEmpty = $isEmpty;
     }
 
-    /**
-     * @return string
-     */
     public function getPath(): string
     {
         return $this->path;
     }
 
-    /**
-     * @return bool
-     */
     public function isDir(): bool
     {
         return $this->isDir;
     }
 
-    /**
-     * @return bool
-     */
     public function isEmpty(): bool
     {
         return $this->isEmpty;
     }
-
 
     public function getName()
     {

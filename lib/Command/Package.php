@@ -25,6 +25,7 @@ class Package extends Command implements EmitterAwareInterface
 
     /**
      * @codeCoverageIgnore
+     * @return void
      */
     protected function configure()
     {
@@ -32,7 +33,8 @@ class Package extends Command implements EmitterAwareInterface
         $definition->addArgument(new InputArgument(
             'composer-json',
             InputArgument::OPTIONAL,
-            'The path to the <info>composer.json</info> file.' . "\n" . 'If the argument is not defined, search of a <info>composer.json</info> inside the current directory'
+            'The path to the <info>composer.json</info> file.' . "\n" .
+            'If the argument is not defined, search of a <info>composer.json</info> inside the current directory'
         ));
         $this->setDefinition($definition);
         $this->setDescription('Generate a Phar from a <info>composer.json</info>');
@@ -46,6 +48,7 @@ HELP
     /** @SuppressWarnings(PHPMD.UnusedFormalParameter) */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        /** @var string|null $composerJsonPath */
         $composerJsonPath = $input->getArgument('composer-json');
         if ($composerJsonPath === null) {
             $composerJsonPath = rtrim(getcwd(), '\\/') . '/composer.json';
@@ -53,7 +56,9 @@ HELP
         $composer = new ComposerJson($composerJsonPath);
 
         if (!$composer->isValid()) {
-            throw new \InvalidArgumentException('The file "' . $composer->getPath() . '" is not a valid *composer.json* file');
+            throw new \InvalidArgumentException(
+                'The file "' . $composer->getPath() . '" is not a valid *composer.json* file'
+            );
         }
 
         $options = OptionsChain::createDefaultChain($this->getEmitter(), $input, $composer);

@@ -4,7 +4,7 @@
  * This software may be modified and distributed under the terms
  * of the MIT license. See the LICENSE.md file for details.
  */
-namespace MacFJA\PharBuilder\tests\Options;
+namespace MacFJA\PharBuilder\UnitTest\Options;
 
 use MacFJA\PharBuilder\Options\ConsoleOptions;
 use PHPUnit\Framework\TestCase;
@@ -24,7 +24,7 @@ class ConsoleOptionsTest extends TestCase
     private function buildOptions($config): ConsoleOptions
     {
         $input = new ArrayInput($config, ConsoleOptions::getInputDefinition());
-        return new ConsoleOptions($input, __DIR__.'/../fixtures/root');
+        return new ConsoleOptions($input, __DIR__ . '/../fixtures/root');
     }
 
     /**
@@ -104,8 +104,8 @@ class ConsoleOptionsTest extends TestCase
     {
         if ($methodName === 'testGetName') {
             return [
-                [['--'.ConsoleOptions::NAME_OPTION_NAME => 'hello'], 'hello'],
-                [['--'.ConsoleOptions::NAME_OPTION_NAME => 'world'], 'world'],
+                [['--' . ConsoleOptions::NAME_OPTION_NAME => 'hello'], 'hello'],
+                [['--' . ConsoleOptions::NAME_OPTION_NAME => 'world'], 'world'],
                 [[], null],
             ];
         } elseif ($methodName === 'testGetIncluded') {
@@ -130,37 +130,37 @@ class ConsoleOptionsTest extends TestCase
             ];
         } elseif ($methodName === 'testGetOutputPath') {
             return [
-                [['--'.ConsoleOptions::OUTPUT_OPTION_NAME => '/'], '/'],
-                [['--'.ConsoleOptions::OUTPUT_OPTION_NAME => '../'], '../'],
-                [['--'.ConsoleOptions::OUTPUT_OPTION_NAME => 'a-directory'], 'a-directory'],
-                [['--'.ConsoleOptions::OUTPUT_OPTION_NAME => 'a-file'], null],
-                [['--'.ConsoleOptions::OUTPUT_OPTION_NAME => 'non-existing'], null],
+                [['--' . ConsoleOptions::OUTPUT_OPTION_NAME => '/'], '/'],
+                [['--' . ConsoleOptions::OUTPUT_OPTION_NAME => '../'], '../'],
+                [['--' . ConsoleOptions::OUTPUT_OPTION_NAME => 'a-directory'], 'a-directory'],
+                [['--' . ConsoleOptions::OUTPUT_OPTION_NAME => 'a-file'], null],
+                [['--' . ConsoleOptions::OUTPUT_OPTION_NAME => 'non-existing'], null],
                 [[], null],
             ];
         } elseif ($methodName === 'testGetEntryPoint') {
             return [
-                [['--'.ConsoleOptions::ENTRYPOINT_OPTION_NAME => '/'], null],
-                [['--'.ConsoleOptions::ENTRYPOINT_OPTION_NAME => 'a-directory'], null],
-                [['--'.ConsoleOptions::ENTRYPOINT_OPTION_NAME => 'a-file'], 'a-file'],
+                [['--' . ConsoleOptions::ENTRYPOINT_OPTION_NAME => '/'], null],
+                [['--' . ConsoleOptions::ENTRYPOINT_OPTION_NAME => 'a-directory'], null],
+                [['--' . ConsoleOptions::ENTRYPOINT_OPTION_NAME => 'a-file'], 'a-file'],
                 [[], null],
             ];
         } elseif ($methodName === 'testGetCompression') {
             return [
-                [['--'.ConsoleOptions::BZ_COMPRESSION_OPTION_NAME => true], \Phar::BZ2],
-                [['--'.ConsoleOptions::GZ_COMPRESSION_OPTION_NAME => true], \Phar::GZ],
-                [['--'.ConsoleOptions::NO_COMPRESSION_OPTION_NAME => true], \Phar::NONE],
+                [['--' . ConsoleOptions::BZ_COMPRESSION_OPTION_NAME => true], \Phar::BZ2],
+                [['--' . ConsoleOptions::GZ_COMPRESSION_OPTION_NAME => true], \Phar::GZ],
+                [['--' . ConsoleOptions::NO_COMPRESSION_OPTION_NAME => true], \Phar::NONE],
                 [[], null],
             ];
         } elseif ($methodName === 'testIncludeDev') {
             return [
-                [['--'.ConsoleOptions::WITHOUT_DEV_OPTION_NAME => true], false],
-                [['--'.ConsoleOptions::WITH_DEV_OPTION_NAME => true], true],
+                [['--' . ConsoleOptions::WITHOUT_DEV_OPTION_NAME => true], false],
+                [['--' . ConsoleOptions::WITH_DEV_OPTION_NAME => true], true],
                 [[], null],
             ];
         } elseif ($methodName === 'testGetStubPath') {
             return [
-                [['--'.ConsoleOptions::WITHOUT_SHEBANG_OPTION_NAME => true], \dirname(__DIR__, 2).'/resources/stubs/map-phar+no-shebang.tpl'],
-                [['--'.ConsoleOptions::WITH_SHEBANG_OPTION_NAME => true], \dirname(__DIR__, 2).'/resources/stubs/map-phar+shebang.tpl'],
+                [['--' . ConsoleOptions::WITHOUT_SHEBANG_OPTION_NAME => true], \dirname(__DIR__, 3) . '/resources/stubs/map-phar+no-shebang.tpl'],
+                [['--' . ConsoleOptions::WITH_SHEBANG_OPTION_NAME => true], \dirname(__DIR__, 3) . '/resources/stubs/map-phar+shebang.tpl'],
                 [[], null],
             ];
         }

@@ -17,7 +17,10 @@ class EventRegister extends AbstractListener implements EmitterAwareInterface
 {
     use EmitterAwareTrait;
 
-    private $listener;
+    /**
+     * @var array<string,array>
+     */
+    private $listener = [];
 
     public function addEventHandler(string $eventName, callable $callable): void
     {
@@ -30,6 +33,10 @@ class EventRegister extends AbstractListener implements EmitterAwareInterface
         $this->getEmitter()->addListener($eventName, $callable);
     }
 
+    /**
+     * @param string $eventName
+     * @param mixed  $object
+     */
     private function addWildcard(string $eventName, $object): void
     {
         if (!array_key_exists($eventName, $this->listener)) {
@@ -59,23 +66,28 @@ class EventRegister extends AbstractListener implements EmitterAwareInterface
      */
     public function handle(EventInterface $event)
     {
-        $events = array_filter($this->listener, function ($eventName) use ($event) {
+        $events = array_filter($this->listener, function (string $eventName) use ($event): bool {
             return fnmatch($eventName, $event->getName());
         }, ARRAY_FILTER_USE_KEY);
 
-        $events = array_reduce($events, function ($carry, $listeners) {
-            return array_merge($carry, $listeners);
-        }, []);
+        $events = array_reduce($events, 'array_merge', []);
 
-        array_walk($events, function ($item) use ($event) {
-            if ($item instanceof ListenerInterface) {
-                $item->handle($event);
+        array_walk(
+            $events,
+            /**
+             * @param mixed $item
+             * @return void
+             */
+            function ($item) use ($event) {
+                if ($item instanceof ListenerInterface) {
+                    $item->handle($event);
 
-                return;
+                    return;
+                }
+                if (\is_callable($item)) {
+                    $item($event);
+                }
             }
-            if (\is_callable($item)) {
-                $item($event);
-            }
-        });
+        );
     }
 }

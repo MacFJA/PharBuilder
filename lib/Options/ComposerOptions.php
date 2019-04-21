@@ -58,7 +58,7 @@ class ComposerOptions implements OptionsInterface
     public function getEntryPoint(): ?string
     {
         $bin = $this->composer->getBins();
-        if ($bin === null || !\is_array($bin) || count($bin) === 0) {
+        if (count($bin) === 0) {
             return null;
         }
 

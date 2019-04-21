@@ -4,7 +4,7 @@
  * This software may be modified and distributed under the terms
  * of the MIT license. See the LICENSE.md file for details.
  */
-namespace MacFJA\PharBuilder\tests\Command;
+namespace MacFJA\PharBuilder\UnitTest\Command;
 
 use MacFJA\PharBuilder\Command\Package;
 use PHPUnit\Framework\TestCase;
@@ -28,7 +28,7 @@ class PackageTest extends TestCase
     {
         $package = new Package();
 
-        $path = __DIR__.'/../fixtures/error-composer/composer.json';
+        $path = __DIR__ . '/../fixtures/error-composer/composer.json';
 
         $input = new ArrayInput([
             'composer-json' => $path
@@ -38,7 +38,7 @@ class PackageTest extends TestCase
             $package->run($input, new NullOutput());
             self::fail();
         } catch (\InvalidArgumentException $exception) {
-            self::assertEquals('The file "'.$path.'" is not a valid *composer.json* file', $exception->getMessage());
+            self::assertEquals('The file "' . $path . '" is not a valid *composer.json* file', $exception->getMessage());
         }
     }
 }

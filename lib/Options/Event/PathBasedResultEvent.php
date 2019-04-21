@@ -12,11 +12,13 @@ use MacFJA\PharBuilder\Composer\ComposerJson;
 
 abstract class PathBasedResultEvent extends Event
 {
-    private $expectDirectory = false;
-    private $expectFile = false;
+    /** @var bool */
+    private $expectDirectory;
+    /** @var bool */
+    private $expectFile;
     /** @var string */
     private $cwd;
-    /** @var ComposerJson */
+    /** @var ComposerJson|null */
     private $composer;
 
     /**
@@ -67,7 +69,7 @@ abstract class PathBasedResultEvent extends Event
     public function getComposerJsonDirectory(): ?string
     {
         if ($this->composer === null || !$this->composer->isValid()) {
-            return false;
+            return null;
         }
 
         return \dirname($this->composer->getPath());

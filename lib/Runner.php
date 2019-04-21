@@ -18,19 +18,25 @@ use MacFJA\PharBuilder\Builder\Event\StatsEvent;
 use MacFJA\PharBuilder\Builder\PathVisitor;
 use MacFJA\PharBuilder\Builder\Stats;
 use MacFJA\PharBuilder\Composer\ComposerJson;
+use MacFJA\PharBuilder\Exception\PharReadOnlyException;
 use MacFJA\PharBuilder\Options\OptionsInterface;
+use MacFJA\PharBuilder\Options\ValidatedOptions;
 use StringTemplate\Engine;
 
+/**
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
 class Runner implements EmitterAwareInterface
 {
     use EmitterAwareTrait;
 
-    /** @var OptionsInterface */
+    /** @var ValidatedOptions */
     private $options;
     /** @var CompressorInterface */
     private $compressor;
     /** @var ComposerJson */
     private $composer;
+    /** @var string[] */
     private $toFake = [];
 
     /**
@@ -42,7 +48,7 @@ class Runner implements EmitterAwareInterface
      */
     public function __construct(OptionsInterface $options, CompressorInterface $compressor, ComposerJson $composer)
     {
-        $this->options = $options;
+        $this->options = new ValidatedOptions($options);
         $this->compressor = $compressor;
         $this->composer = $composer;
     }
@@ -59,6 +65,10 @@ class Runner implements EmitterAwareInterface
         $stats->start();
         $this->getEmitter()->emit('execution.before');
 
+        if (ini_get('phar.readonly') == true) {
+            throw new PharReadOnlyException();
+        }
+
         $outputFilename = $this->options->getOutputPath() . DIRECTORY_SEPARATOR . $this->options->getName() . '.phar';
 
         $stats->setFinalPath($outputFilename);
@@ -68,8 +78,7 @@ class Runner implements EmitterAwareInterface
         }
         $phar = new \Phar(
             $outputFilename,
-            \FilesystemIterator::CURRENT_AS_FILEINFO | \FilesystemIterator::KEY_AS_FILENAME,
-            $this->options->getName()
+            \FilesystemIterator::CURRENT_AS_FILEINFO | \FilesystemIterator::KEY_AS_FILENAME
         );
 
         $stubFile = $this->getStubFile();
@@ -78,6 +87,10 @@ class Runner implements EmitterAwareInterface
         $builder->setEmitter($this->getEmitter());
 
         $phar->setStub($stubFile);
+
+        foreach ($this->composer->getSourcesPath($this->options->includeDev()) as $file) {
+            $builder->add($file);
+        }
 
         foreach ($this->getComposerDirectories() as $directory) {
             $builder->add($directory);
@@ -129,12 +142,13 @@ class Runner implements EmitterAwareInterface
         return $templateEngine->render($data, ['alias' => $internalName, 'entry-point' => $entry]);
     }
 
-    private function getPathVisitor()
+    private function getPathVisitor(): PathVisitor
     {
         $excluded = $this->options->getExcluded();
 
         return new class($excluded) implements PathVisitor
         {
+            /** @var string[] */
             private $excluded;
 
             /**

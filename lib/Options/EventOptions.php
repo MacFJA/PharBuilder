@@ -9,6 +9,7 @@ namespace MacFJA\PharBuilder\Options;
 
 use League\Event\EmitterInterface;
 use MacFJA\PharBuilder\Composer\ComposerJson;
+use MacFJA\PharBuilder\EventRegister;
 use MacFJA\PharBuilder\Options\Event\BooleanResultEvent;
 use MacFJA\PharBuilder\Options\Event\IntegerResultEvent;
 use MacFJA\PharBuilder\Options\Event\PathListResultEvent;
@@ -19,7 +20,7 @@ class EventOptions implements OptionsInterface
 {
     /** @var EmitterInterface */
     private $emitter;
-    /** @var ComposerJson */
+    /** @var ComposerJson|null */
     private $composer;
     /**
      * @var null|string
@@ -38,6 +39,35 @@ class EventOptions implements OptionsInterface
         $this->emitter = $emitter;
         $this->composer = $composer;
         $this->rootDir = $rootDir;
+
+        if ($composer) {
+            $this->registerCustomHandler();
+        }
+    }
+
+    public function registerCustomHandler(): void
+    {
+        if ($this->composer === null) {
+            return;
+        }
+
+        $register = new EventRegister();
+        $register->setEmitter($this->emitter);
+
+        $extra = $this->composer->getExtra('phar-builder');
+        $events = $extra['events'] ?? [];
+
+        foreach ($events as $eventName => $handlers) {
+            if (!\is_array($handlers)) {
+                $handlers = [$handlers];
+            }
+
+            array_walk($handlers, function (string $handlerCallable) use ($eventName, $register): void {
+                $register->addEventHandler($eventName, $handlerCallable);
+            });
+        }
+
+        $this->emitter->addListener('*', $register);
     }
 
     public function getOutputPath(): ?string

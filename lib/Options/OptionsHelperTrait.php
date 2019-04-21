@@ -9,6 +9,14 @@ namespace MacFJA\PharBuilder\Options;
 
 trait OptionsHelperTrait
 {
+    /**
+     * @param string|string[]|null $data
+     * @param string               $root
+     * @param bool                 $allowFiles
+     * @param bool                 $allowDirs
+     *
+     * @return string|null
+     */
     private function getOnePathData($data, string $root, bool $allowFiles, bool $allowDirs): ?string
     {
         if ($data === null) {
@@ -47,6 +55,12 @@ trait OptionsHelperTrait
         return \count($values) === 0 ? null : array_values($values);
     }
 
+    /**
+     * @param string|string[]|null $data
+     * @param string               $root
+     *
+     * @return array|null
+     */
     private function getPathsData($data, string $root): ?array
     {
         if ($data === null || !\is_array($data) || \count($data) === 0) {
