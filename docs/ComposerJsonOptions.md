@@ -33,9 +33,17 @@ If the option is not provided, the next options source will be requested
 
 ### Set where to generate the phar (`output`)
 
+Define where the PHAR will be output.
+
 ### Set the name of the phar (`name`)
 
+Define the name of the PHAR (without the `.phar` extension)
+
 ### Set if dev dependencies must be included (`dev`)
+
+Indicate if development dependencies should be include in the PHAR.  
+
+(Set to `true` to add developments dependencies)
 
 ### Set if the shebang must be added (`shebang`)
 
@@ -45,9 +53,26 @@ Any shebang in the entry point will be remove to avoid printing the shebang line
 
 ### Set the file to run when the phar is executed (`entry-point`)
 
+Define the file that will be load by the PHAR when executed.
+
+(Any shebang in this file will be removed)
+
 ### Set the list of files/directories that are not in the autoload and that are needed (`included`)
 
+Define the list of directories or files to add along the PHAR.
+
+PharBuilder will automatically add directories and files that are declared in the `autoload` (and `autoload-dev` if requested) section of the `composer.json`, but any additional data your application need must be add by you.
+
 ### Set the list of files/directories to exclude of the phar (`exculded`)
+
+You can define path to excludes. The path can be partial:
+
+| Value | Match `hello/tests/world` | Match `hellotestsworld` | Match `tests/world` | Match `hello/tests` | Match `testsworld` |
+| ----- | ------------------------- | ----------------------- | ------------------- | ------------------- | ------------------- |
+| `tests` | **YES** | **YES** | **YES** | **YES** | **YES** |
+| `/tests` | _NO_ | _NO_ | **YES** | _NO_ | **YES** |
+| `/tests/` | _NO_ | _NO_ | **YES** | _NO_ | _NO_ |
+| `*/tests/` | **YES** | _NO_ | **YES** | **YES** | _NO_ |
 
 ### Set the compression of the phar (`compression`)
 

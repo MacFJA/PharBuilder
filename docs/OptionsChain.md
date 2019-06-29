@@ -7,6 +7,6 @@ The options are search in this order:
  - [EventOptions](EventOptions.md)
  - [ConsoleOptions](ConsoleOptions.md)
  - [ComposerJson extra section](ComposerJsonOptions.md)
- - ComposerJson global information
- - ProjectStructureOptions
- - DefaultOptions
+ - [ComposerJson global information](ComposerJsonGenericOptions.md)
+ - [ProjectStructureOptions](ProjectStructureOptions.md)
+ - [DefaultOptions](DefaultOptions.md)
