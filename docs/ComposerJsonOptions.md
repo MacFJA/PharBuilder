@@ -63,7 +63,7 @@ Define the list of directories or files to add along the PHAR.
 
 PharBuilder will automatically add directories and files that are declared in the `autoload` (and `autoload-dev` if requested) section of the `composer.json`, but any additional data your application need must be add by you.
 
-### Set the list of files/directories to exclude of the phar (`exculded`)
+### Set the list of files/directories to exclude of the phar (`excluded`)
 
 You can define path to excludes. The path can be partial:
 
